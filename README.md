@@ -15,6 +15,7 @@ I am expanding iRon to incorporate highly requested features (like Radar, Spotte
   - [*Cover*](#cover)
   - [*Spotter*](#spotter)
   - [*Radar*](#radar)
+  - [*Incident*](#incident)
 - [Installing & Running](#installing--running)
 - [Configuration](#configuration)
 - [Building from source](#building-from-source)
@@ -71,6 +72,10 @@ A visual spotter that draws transparent colored rectangles on the left and right
 ### *Radar*
 
 A proximity radar rendering a top-down view of cars around you. Your car is positioned at the center (green). Cars ahead or behind are drawn as red rectangles based on their physical distance. Cars driving alongside you in your blind spot are offset to the left or right depending on the spotter telemetry.
+
+### *Incident*
+
+A smart incident warning system. Instead of just showing a generic yellow flag banner, this overlay calculates if a car ahead of you has gone off-track during a caution. If a crashed or off-track car is detected within 150 meters ahead, it renders a prominent blinking warning banner specifying the distance to the crash, helping you anticipate the danger.
 
 ---
 
