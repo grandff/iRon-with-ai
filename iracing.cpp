@@ -397,6 +397,23 @@ ConnectionStatus ir_tick()
         sprintf( path, "WeekendInfo:SubSessionID:" );
         parseYamlInt( sessionYaml, path, &ir_session.subsessionId );
 
+        std::string trackLengthStr;
+        sprintf( path, "WeekendInfo:TrackLength:" );
+        if( parseYamlStr( sessionYaml, path, trackLengthStr ) )
+        {
+            // Parse strings like "4.30 km" or "2.50 mi"
+            float val = 0;
+            char unit[16] = {0};
+            if (sscanf(trackLengthStr.c_str(), "%f %s", &val, unit) == 2) {
+                if (strstr(unit, "km"))
+                    ir_session.trackLength = val * 1000.0f;
+                else if (strstr(unit, "mi"))
+                    ir_session.trackLength = val * 1609.34f;
+                else
+                    ir_session.trackLength = val; // fallback
+            }
+        }
+
         sprintf( path, "WeekendInfo:WeekendOptions:IsFixedSetup:" );
         parseYamlInt( sessionYaml, path, &ir_session.isFixedSetup );
 

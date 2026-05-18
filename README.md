@@ -14,6 +14,7 @@ I am expanding iRon to incorporate highly requested features (like Radar, Spotte
   - [*Standings*](#standings)
   - [*Cover*](#cover)
   - [*Spotter*](#spotter)
+  - [*Radar*](#radar)
 - [Installing & Running](#installing--running)
 - [Configuration](#configuration)
 - [Building from source](#building-from-source)
@@ -66,6 +67,10 @@ No screenshot for this one, because all it is is a blank rectangle. Can be usefu
 ### *Spotter*
 
 A visual spotter that draws transparent colored rectangles on the left and right sides of your screen when a car is in your blind spot. This directly taps into iRacing's built-in spotter telemetry. In edit mode (`ALT-J`), both rectangles are shown so you can position and resize them easily.
+
+### *Radar*
+
+A proximity radar rendering a top-down view of cars around you. Your car is positioned at the center (green). Cars ahead or behind are drawn as red rectangles based on their physical distance. Cars driving alongside you in your blind spot are offset to the left or right depending on the spotter telemetry.
 
 ---
 

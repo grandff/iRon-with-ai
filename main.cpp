@@ -43,6 +43,7 @@ SOFTWARE.
 #include "OverlayDebug.h"
 #include "OverlayDDU.h"
 #include "OverlaySpotter.h"
+#include "OverlayRadar.h"
 #include "TelemetryLogger.h"
 
 // ANSI Color Codes
@@ -92,7 +93,8 @@ enum class Hotkey
     Inputs,
     Relative,
     Cover,
-    Spotter
+    Spotter,
+    Radar
 };
 
 static void registerHotkeys()
@@ -104,6 +106,7 @@ static void registerHotkeys()
     UnregisterHotKey( NULL, (int)Hotkey::Relative );
     UnregisterHotKey( NULL, (int)Hotkey::Cover );
     UnregisterHotKey( NULL, (int)Hotkey::Spotter );
+    UnregisterHotKey( NULL, (int)Hotkey::Radar );
 
     UINT vk, mod;
 
@@ -127,6 +130,9 @@ static void registerHotkeys()
 
     if( parseHotkey( g_cfg.getString("OverlaySpotter","toggle_hotkey","ctrl-5"),&mod,&vk) )
         RegisterHotKey( NULL, (int)Hotkey::Spotter, mod, vk );
+
+    if( parseHotkey( g_cfg.getString("OverlayRadar","toggle_hotkey","ctrl-6"),&mod,&vk) )
+        RegisterHotKey( NULL, (int)Hotkey::Radar, mod, vk );
 }
 
 static void handleConfigChange( std::vector<Overlay*> overlays, ConnectionStatus status )
@@ -185,6 +191,7 @@ int main()
     printf("    " ANSI_B_RED "▶" ANSI_RESET " Toggle relative          : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlayRelative","toggle_hotkey","").c_str() );
     printf("    " ANSI_B_RED "▶" ANSI_RESET " Toggle cover             : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlayCover","toggle_hotkey","").c_str() );
     printf("    " ANSI_B_RED "▶" ANSI_RESET " Toggle spotter           : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlaySpotter","toggle_hotkey","").c_str() );
+    printf("    " ANSI_B_RED "▶" ANSI_RESET " Toggle radar             : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlayRadar","toggle_hotkey","").c_str() );
     
     printf("\n" ANSI_BOLD "  [ CONFIG ]" ANSI_RESET "\n");
     printf("    Settings are auto-saved to " ANSI_YELLOW "config.json" ANSI_RESET ". You can edit it manually\n");
@@ -202,6 +209,7 @@ int main()
     overlays.push_back( new OverlayStandings() );
     overlays.push_back( new OverlayDDU() );
     overlays.push_back( new OverlaySpotter() );
+    overlays.push_back( new OverlayRadar() );
 #ifdef _DEBUG
     overlays.push_back( new OverlayDebug() );
 #endif
@@ -305,6 +313,9 @@ int main()
                         break;
                     case (int)Hotkey::Spotter:
                         g_cfg.setBool( "OverlaySpotter", "enabled", !g_cfg.getBool("OverlaySpotter","enabled",true) );
+                        break;
+                    case (int)Hotkey::Radar:
+                        g_cfg.setBool( "OverlayRadar", "enabled", !g_cfg.getBool("OverlayRadar","enabled",true) );
                         break;
                     }
                     

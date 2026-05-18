@@ -85,6 +85,7 @@ struct Session
     int             isFixedSetup = 0;
     int             isUnlimitedTime = 0;
     int             isUnlimitedLaps = 0;
+    float           trackLength = 0;
     float           fuelMaxLtr = 0;
     float           rpmIdle = 0;
     float           rpmRedline = 0;
