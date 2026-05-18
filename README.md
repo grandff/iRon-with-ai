@@ -1,10 +1,8 @@
-# iRon - lightweight overlays for iRacing <!-- omit in toc -->
+# iRon-Advanced - expanded lightweight overlays for iRacing <!-- omit in toc -->
 
-This project provides a few lightweight overlays for iRacing. Included are: a relative display with optional minimap, a dashboard with fuel calculator, a throttle/brake input graph, and a standings display.
+This project is an expanded version of the original `iRon` overlays, aiming to provide additional advanced features while maintaining the original philosophy. Included are: a relative display with optional minimap, a dashboard with fuel calculator, a throttle/brake input graph, a standings display, and a visual spotter.
 
-I created iRon for my own personal use. As such, its feature set is limited to what I considered sensible in practice given the way I use iRacing. I don't currently plan to extend it further. That said, I'm making it available in the hope it might be useful to others in the iRacing community, either for direct use or as a starting point for other homebrew overlays.
-
-The project's code base aims to be small, easy to modify, and free of external dependencies.
+I am expanding iRon to incorporate highly requested features (like Radar, Spotter, etc.) found in modern overlay suites. It remains small, easy to modify, and free of external dependencies.
 
 # Contents <!-- omit in toc -->
 
@@ -15,6 +13,7 @@ The project's code base aims to be small, easy to modify, and free of external d
   - [*Inputs*](#inputs)
   - [*Standings*](#standings)
   - [*Cover*](#cover)
+  - [*Spotter*](#spotter)
 - [Installing & Running](#installing--running)
 - [Configuration](#configuration)
 - [Building from source](#building-from-source)
@@ -63,6 +62,10 @@ Like the "Relative" overlay, this will highlight buddies in green (Dale Jr. in t
 ### *Cover*
 
 No screenshot for this one, because all it is is a blank rectangle. Can be useful to cover up distracting in-game dashboards, like the one in the next-gen NASCAR.
+
+### *Spotter*
+
+A visual spotter that draws transparent colored rectangles on the left and right sides of your screen when a car is in your blind spot. This directly taps into iRacing's built-in spotter telemetry. In edit mode (`ALT-J`), both rectangles are shown so you can position and resize them easily.
 
 ---
 

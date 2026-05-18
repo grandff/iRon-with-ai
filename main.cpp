@@ -42,6 +42,47 @@ SOFTWARE.
 #include "OverlayStandings.h"
 #include "OverlayDebug.h"
 #include "OverlayDDU.h"
+#include "OverlaySpotter.h"
+#include "TelemetryLogger.h"
+
+// ANSI Color Codes
+#define ANSI_RESET   "\x1b[0m"
+#define ANSI_BOLD    "\x1b[1m"
+#define ANSI_RED     "\x1b[31m"
+#define ANSI_GREEN   "\x1b[32m"
+#define ANSI_YELLOW  "\x1b[33m"
+#define ANSI_BLUE    "\x1b[34m"
+#define ANSI_MAGENTA "\x1b[35m"
+#define ANSI_CYAN    "\x1b[36m"
+#define ANSI_WHITE   "\x1b[37m"
+#define ANSI_B_RED   "\x1b[91m"
+#define ANSI_B_WHITE "\x1b[97m"
+#define ANSI_BG_RED  "\x1b[41m"
+
+// Function to enable ANSI colors in Windows Console
+void EnableANSIColors() {
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hOut == INVALID_HANDLE_VALUE) return;
+    DWORD dwMode = 0;
+    if (!GetConsoleMode(hOut, &dwMode)) return;
+    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(hOut, dwMode);
+}
+
+std::string getDesktopPath() {
+    const char* home = getenv("HOME");
+    if (home) {
+        return std::string(home) + "/Desktop/iRon_telemetry.jsonl";
+    }
+    const char* userprofile = getenv("USERPROFILE");
+    if (userprofile) {
+        return std::string(userprofile) + "\\Desktop\\iRon_telemetry.jsonl";
+    }
+    return "/tmp/iRon_telemetry.jsonl";
+}
+
+TelemetryLogger g_telemetryLogger(getDesktopPath());
+
 
 enum class Hotkey
 {
@@ -50,7 +91,8 @@ enum class Hotkey
     DDU,
     Inputs,
     Relative,
-    Cover
+    Cover,
+    Spotter
 };
 
 static void registerHotkeys()
@@ -61,6 +103,7 @@ static void registerHotkeys()
     UnregisterHotKey( NULL, (int)Hotkey::Inputs );
     UnregisterHotKey( NULL, (int)Hotkey::Relative );
     UnregisterHotKey( NULL, (int)Hotkey::Cover );
+    UnregisterHotKey( NULL, (int)Hotkey::Spotter );
 
     UINT vk, mod;
 
@@ -81,6 +124,9 @@ static void registerHotkeys()
 
     if( parseHotkey( g_cfg.getString("OverlayCover","toggle_hotkey","ctrl-4"),&mod,&vk) )
         RegisterHotKey( NULL, (int)Hotkey::Cover, mod, vk );
+
+    if( parseHotkey( g_cfg.getString("OverlaySpotter","toggle_hotkey","ctrl-5"),&mod,&vk) )
+        RegisterHotKey( NULL, (int)Hotkey::Spotter, mod, vk );
 }
 
 static void handleConfigChange( std::vector<Overlay*> overlays, ConnectionStatus status )
@@ -109,33 +155,44 @@ static void giveFocusToIracing()
 
 int main()
 {
+    // Enable ANSI colors for beautiful console output
+    EnableANSIColors();
+
     // Bump priority up so we get time from the sim
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 
     // Load the config and watch it for changes
     g_cfg.load();
     g_cfg.watchForChanges();
+        // Start telemetry logging
+        g_telemetryLogger.start();
 
     // Register global hotkeys
     registerHotkeys();
 
-    printf("\n====================================================================================\n");
-    printf("Welcome to iRon! This app provides a few simple overlays for iRacing.\n\n");
-    printf("NOTE: Most overlays are only active when iRacing is running and the car is on track.\n\n");
-    printf("Current hotkeys:\n");
-    printf("    Move and resize overlays:     %s\n", g_cfg.getString("General","ui_edit_hotkey","").c_str() );
-    printf("    Toggle standings overlay:     %s\n", g_cfg.getString("OverlayStandings","toggle_hotkey","").c_str() );
-    printf("    Toggle DDU overlay:           %s\n", g_cfg.getString("OverlayDDU","toggle_hotkey","").c_str() );
-    printf("    Toggle inputs overlay:        %s\n", g_cfg.getString("OverlayInputs","toggle_hotkey","").c_str() );
-    printf("    Toggle relative overlay:      %s\n", g_cfg.getString("OverlayRelative","toggle_hotkey","").c_str() );
-    printf("    Toggle cover overlay:         %s\n", g_cfg.getString("OverlayCover","toggle_hotkey","").c_str() );
-    printf("\niRon will generate a file called \'config.json\' in its current directory. This file\n"\
-           "stores your settings. You can edit the file at any time, even while iRon is running,\n"\
-           "to customize your overlays and hotkeys.\n\n");
-    printf("To exit iRon, simply close this console window.\n\n");
-    printf("For the latest version or to submit bug reports, go to:\n\n        https://github.com/lespalt/iRon\n\n");
-    printf("\nHappy Racing!\n");
-    printf("====================================================================================\n\n");
+    printf("\n" ANSI_B_RED " ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰ " ANSI_RESET "\n\n");
+    
+    printf(ANSI_BOLD ANSI_B_WHITE "  iRon-Advanced " ANSI_RESET ANSI_B_RED " | " ANSI_RESET "Lightweight Overlays for iRacing\n\n");
+    
+    printf(ANSI_YELLOW "  [ INFO ] " ANSI_RESET "Most overlays are active ONLY when iRacing is running\n");
+    printf("           and your car is on the track.\n\n");
+
+    printf(ANSI_BOLD "  [ HOTKEYS ]" ANSI_RESET "\n");
+    printf("    " ANSI_B_RED "▶" ANSI_RESET " Move and resize overlays : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("General","ui_edit_hotkey","").c_str() );
+    printf("    " ANSI_B_RED "▶" ANSI_RESET " Toggle standings         : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlayStandings","toggle_hotkey","").c_str() );
+    printf("    " ANSI_B_RED "▶" ANSI_RESET " Toggle DDU               : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlayDDU","toggle_hotkey","").c_str() );
+    printf("    " ANSI_B_RED "▶" ANSI_RESET " Toggle inputs            : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlayInputs","toggle_hotkey","").c_str() );
+    printf("    " ANSI_B_RED "▶" ANSI_RESET " Toggle relative          : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlayRelative","toggle_hotkey","").c_str() );
+    printf("    " ANSI_B_RED "▶" ANSI_RESET " Toggle cover             : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlayCover","toggle_hotkey","").c_str() );
+    printf("    " ANSI_B_RED "▶" ANSI_RESET " Toggle spotter           : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlaySpotter","toggle_hotkey","").c_str() );
+    
+    printf("\n" ANSI_BOLD "  [ CONFIG ]" ANSI_RESET "\n");
+    printf("    Settings are auto-saved to " ANSI_YELLOW "config.json" ANSI_RESET ". You can edit it manually\n");
+    printf("    at any time while iRon is running to customize aesthetics.\n");
+    
+    printf("\n    Close this window to exit.\n\n");
+    
+    printf(ANSI_B_RED " ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰ " ANSI_RESET "\n\n");
 
     // Create overlays
     std::vector<Overlay*> overlays;
@@ -144,6 +201,7 @@ int main()
     overlays.push_back( new OverlayInputs() );
     overlays.push_back( new OverlayStandings() );
     overlays.push_back( new OverlayDDU() );
+    overlays.push_back( new OverlaySpotter() );
 #ifdef _DEBUG
     overlays.push_back( new OverlayDebug() );
 #endif
@@ -162,9 +220,9 @@ int main()
         if( status != prevStatus )
         {
             if( status == ConnectionStatus::DISCONNECTED )
-                printf("Waiting for iRacing connection...\n");
+                printf(ANSI_BOLD ANSI_B_RED "  [ \x1b[5mWAITING\x1b[25m ] " ANSI_RESET "Waiting for iRacing connection...\n");
             else
-                printf("iRacing connected (%s)\n", ConnectionStatusStr[(int)status]);
+                printf(ANSI_BOLD ANSI_GREEN "  [ CONNECTED ] " ANSI_RESET "iRacing active (%s)\n", ConnectionStatusStr[(int)status]);
 
             // Enable user-selected overlays, but only if we're driving
             handleConfigChange( overlays, status );
@@ -244,6 +302,9 @@ int main()
                         break;
                     case (int)Hotkey::Cover:
                         g_cfg.setBool( "OverlayCover", "enabled", !g_cfg.getBool("OverlayCover","enabled",true) );
+                        break;
+                    case (int)Hotkey::Spotter:
+                        g_cfg.setBool( "OverlaySpotter", "enabled", !g_cfg.getBool("OverlaySpotter","enabled",true) );
                         break;
                     }
                     
