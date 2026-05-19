@@ -87,6 +87,7 @@ struct Session
     int             isUnlimitedTime = 0;
     int             isUnlimitedLaps = 0;
     float           trackLength = 0;
+    std::string     trackPitSpeedLimitStr;
     float           fuelMaxLtr = 0;
     float           rpmIdle = 0;
     float           rpmRedline = 0;

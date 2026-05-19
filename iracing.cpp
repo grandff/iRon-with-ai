@@ -414,6 +414,9 @@ ConnectionStatus ir_tick()
             }
         }
 
+        sprintf( path, "WeekendInfo:TrackPitSpeedLimit:" );
+        parseYamlStr( sessionYaml, path, ir_session.trackPitSpeedLimitStr );
+
         sprintf( path, "WeekendInfo:WeekendOptions:IsFixedSetup:" );
         parseYamlInt( sessionYaml, path, &ir_session.isFixedSetup );
 

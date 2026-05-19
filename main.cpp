@@ -230,6 +230,7 @@ int main()
     overlays.push_back( new OverlayFlatMap() );
     overlays.push_back( new OverlayTraffic() );
     overlays.push_back( new OverlayDeltaBar() );
+    overlays.push_back( new OverlayPitHelper() );
 #ifdef _DEBUG
     overlays.push_back( new OverlayDebug() );
 #endif
