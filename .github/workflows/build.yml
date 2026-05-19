@@ -1,11 +1,10 @@
-name: Build Windows App (MSBuild)
+name: Build and Release Windows App
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch: # 수동 실행을 위한 트리거
+    tags:
+      - "v*.*.*" # v1.0.0 형식의 태그 푸시 시 릴리즈 동작
+  workflow_dispatch: # 수동 실행 (원할 때 언제든 클릭으로 릴리즈 생성 가능)
 
 jobs:
   build:
@@ -21,12 +20,25 @@ jobs:
       uses: microsoft/setup-msbuild@v2
 
     - name: Build Solution
-      # 워크디렉토리에 있는 iron.sln 파일을 Release 구성 및 x64 플랫폼으로 빌드
       run: msbuild iron.sln /p:Configuration=Release /p:Platform=x64
 
+    - name: Rename Executable
+      # 빌드된 iRon.exe 파일의 이름을 iRon_Advanced.exe 로 변경합니다.
+      run: Rename-Item -Path "x64\Release\iRon.exe" -NewName "iRon_Advanced.exe"
+
     - name: Upload Artifact
-      # 빌드된 iRon.exe 파일을 다운로드할 수 있도록 아티팩트로 업로드
+      # 만약을 대비해 릴리즈 외에도 아티팩트로 저장
       uses: actions/upload-artifact@v4
       with:
-        name: iRon-Advanced-Release
-        path: x64/Release/iRon.exe
+        name: iRon_Advanced
+        path: x64/Release/iRon_Advanced.exe
+
+    - name: Create Release
+      # 태그가 푸시되거나 수동 실행 시 자동으로 Release 페이지에 exe 파일을 등록합니다.
+      uses: softprops/action-gh-release@v2
+      with:
+        files: x64/Release/iRon_Advanced.exe
+        name: Release ${{ github.ref_name }} # 태그 이름이나 브랜치 이름으로 자동 생성
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
