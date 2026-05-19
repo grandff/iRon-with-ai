@@ -25,13 +25,13 @@ protected:
     {
         // 1. 전체 트랙 배경 그리기 (반투명 어두운 바)
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> bgBrush;
-        m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.5f), &bgBrush);
+        m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.5f), &bgBrush);
         D2D1_RECT_F bgRect = D2D1::RectF(0, 0, (float)m_width, (float)m_height);
         m_renderTarget->FillRectangle(&bgRect, bgBrush.Get());
 
         // 트랙 가이드라인 (중앙에 얇은 선 하나 그리기)
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> lineBrush;
-        m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.2f), &lineBrush);
+        m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.2f), &lineBrush);
         D2D1_RECT_F lineRect = D2D1::RectF(0, (float)m_height / 2.0f - 1.0f, (float)m_width, (float)m_height / 2.0f + 1.0f);
         m_renderTarget->FillRectangle(&lineRect, lineBrush.Get());
 
@@ -40,13 +40,13 @@ protected:
         // UI 에디트 모드일 때 가상의 트래픽 생성
         if (m_uiEditEnabled) {
             Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> playerBrush;
-            m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.9f, 0.0f, 1.0f), &playerBrush);
-            D2D1_RECT_F pRect = D2D1::RectF(m_width * 0.5f - 4, 10, m_width * 0.5f + 4, m_height - 10);
+            m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.9f, 0.0f, 1.0f), &playerBrush);
+            D2D1_RECT_F pRect = D2D1::RectF(m_width * 0.5f - 4.0f, 10.0f, m_width * 0.5f + 4.0f, m_height - 10.0f);
             m_renderTarget->FillRectangle(&pRect, playerBrush.Get());
 
             Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> otherBrush;
-            m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.8f), &otherBrush);
-            D2D1_RECT_F oRect = D2D1::RectF(m_width * 0.6f - 3, 20, m_width * 0.6f + 3, m_height - 20);
+            m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.8f), &otherBrush);
+            D2D1_RECT_F oRect = D2D1::RectF(m_width * 0.6f - 3.0f, 20.0f, m_width * 0.6f + 3.0f, m_height - 20.0f);
             m_renderTarget->FillRectangle(&oRect, otherBrush.Get());
             return;
         }
@@ -59,19 +59,19 @@ protected:
 
         // 브러시 준비
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> playerBrush;
-        m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.9f, 0.0f, 1.0f), &playerBrush); // 내 차: 녹색
+        m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.9f, 0.0f, 1.0f), &playerBrush); // 내 차: 녹색
         
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> sameLapBrush;
-        m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.9f), &sameLapBrush); // 동일 랩: 흰색
+        m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.9f), &sameLapBrush); // 동일 랩: 흰색
         
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> lapAheadBrush;
-        m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(0.9f, 0.2f, 0.2f, 0.9f), &lapAheadBrush); // 앞 랩(Lapper): 빨강
+        m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.9f, 0.2f, 0.2f, 0.9f), &lapAheadBrush); // 앞 랩(Lapper): 빨강
         
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> lapBehindBrush;
-        m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(0.2f, 0.6f, 1.0f, 0.9f), &lapBehindBrush); // 뒤 랩(백마커): 파랑
+        m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.2f, 0.6f, 1.0f, 0.9f), &lapBehindBrush); // 뒤 랩(백마커): 파랑
 
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> pitBrush;
-        m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(0.9f, 0.8f, 0.1f, 0.6f), &pitBrush); // 피트: 노랑 투명
+        m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.9f, 0.8f, 0.1f, 0.6f), &pitBrush); // 피트: 노랑 투명
 
         // 2. 다른 차량들 그리기
         for (int i = 0; i < IR_MAX_CARS; ++i)

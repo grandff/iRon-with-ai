@@ -33,9 +33,9 @@ protected:
             carRight = true;
         }
 
-        m_d2dFactory->CreateSolidColorBrush( D2D1::ColorF(1.0f, 0.2f, 0.0f, 0.8f), &m_brush );
+        m_renderTarget->CreateSolidColorBrush( D2D1::ColorF(1.0f, 0.2f, 0.0f, 0.8f), &m_brush );
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> clearBrush;
-        m_d2dFactory->CreateSolidColorBrush( D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f), &clearBrush );
+        m_renderTarget->CreateSolidColorBrush( D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f), &clearBrush );
 
         float rectWidth = m_width * 0.2f;
 

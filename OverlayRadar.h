@@ -24,7 +24,7 @@ protected:
     {
         // 배경 반투명 처리
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> bgBrush;
-        m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.4f), &bgBrush);
+        m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.4f), &bgBrush);
         D2D1_RECT_F bgRect = D2D1::RectF(0, 0, (float)m_width, (float)m_height);
         m_renderTarget->FillRectangle(&bgRect, bgBrush.Get());
 
@@ -37,7 +37,7 @@ protected:
 
         // 플레이어 차량 그리기 (가운데 고정)
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> playerBrush;
-        m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.8f, 0.0f, 1.0f), &playerBrush);
+        m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.8f, 0.0f, 1.0f), &playerBrush);
         D2D1_ROUNDED_RECT playerRect = D2D1::RoundedRect(
             D2D1::RectF(centerX - 10, centerY - 20, centerX + 10, centerY + 20), 4.0f, 4.0f
         );
@@ -49,7 +49,7 @@ protected:
         const int spotterState = ir_CarLeftRight.getInt();
 
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> otherCarBrush;
-        m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(0.8f, 0.1f, 0.1f, 1.0f), &otherCarBrush);
+        m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.8f, 0.1f, 0.1f, 1.0f), &otherCarBrush);
 
         // UI 에디트 모드 시 가상의 차량 렌더링
         if (m_uiEditEnabled) {

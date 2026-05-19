@@ -107,7 +107,7 @@ protected:
             {
                 // 배경: 반투명 빨간색
                 Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> bgBrush;
-                m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(0.9f, 0.1f, 0.1f, 0.85f), &bgBrush);
+                m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.9f, 0.1f, 0.1f, 0.85f), &bgBrush);
                 
                 D2D1_ROUNDED_RECT bgRect = D2D1::RoundedRect(
                     D2D1::RectF(0, 0, (float)m_width, (float)m_height), 10.0f, 10.0f
@@ -116,12 +116,12 @@ protected:
 
                 // 테두리: 노란색
                 Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> borderBrush;
-                m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(1.0f, 0.9f, 0.0f, 1.0f), &borderBrush);
+                m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 0.9f, 0.0f, 1.0f), &borderBrush);
                 m_renderTarget->DrawRoundedRectangle(&bgRect, borderBrush.Get(), 4.0f);
 
                 // 텍스트: 하얀색
                 Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> textBrush;
-                m_d2dFactory->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &textBrush);
+                m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &textBrush);
 
                 m_text.render(m_renderTarget.Get(), warningText.c_str(), m_textFormat.Get(), 0, (float)m_width, (float)m_height / 2.0f, textBrush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
             }
