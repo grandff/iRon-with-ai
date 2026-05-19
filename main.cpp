@@ -226,6 +226,7 @@ int main()
     overlays.push_back( new OverlayRadar() );
     overlays.push_back( new OverlayIncident() );
     overlays.push_back( new OverlayFlatMap() );
+    overlays.push_back( new OverlayTraffic() );
 #ifdef _DEBUG
     overlays.push_back( new OverlayDebug() );
 #endif

@@ -38,10 +38,7 @@ jobs:
 
     - name: Create Release
       # 태그가 푸시되거나 수동 실행 시 자동으로 Release 페이지에 exe 파일을 등록합니다.
-      uses: softprops/action-gh-release@v2
-      with:
-        files: x64/Release/iRon_Advanced.exe
-        name: ${{ github.ref_name }} # 태그 이름(v1.0.x)만 나오도록 수정
-        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create ${{ github.ref_name }} "x64/Release/iRon_Advanced.exe" --title "${{ github.ref_name }}" --generate-notes
