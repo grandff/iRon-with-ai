@@ -84,8 +84,22 @@ static LRESULT CALLBACK windowProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
                 const int w = r.right - r.left;
                 const int h = r.bottom - r.top;
                 o->setWindowPosAndSize( x, y, w, h, false );
-                o->saveWindowPosAndSize();
                 o->update(); // draw window content while moving/resizing
+            }
+            break;
+        }
+        case WM_EXITSIZEMOVE:
+        {
+            if( o )
+            {
+                RECT r;
+                GetWindowRect( hwnd, &r );
+                const int x = r.left;
+                const int y = r.top;
+                const int w = r.right - r.left;
+                const int h = r.bottom - r.top;
+                o->setWindowPosAndSize( x, y, w, h, false );
+                o->saveWindowPosAndSize();
             }
             break;
         }

@@ -210,8 +210,8 @@ int main()
     printf("    " ANSI_B_RED ">" ANSI_RESET " Toggle flat map          : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlayFlatMap","toggle_hotkey","").c_str() );
     
     printf("\n" ANSI_BOLD "  [ CONFIG ]" ANSI_RESET "\n");
-    printf("    Settings are auto-saved to " ANSI_YELLOW "config.json" ANSI_RESET ". You can edit it manually\n");
-    printf("    at any time while iRon is running to customize aesthetics.\n");
+    printf("    Settings are auto-saved to " ANSI_YELLOW "Documents\\iRon_Advanced\\config.json" ANSI_RESET ".\n");
+    printf("    You can edit it manually at any time to customize aesthetics.\n");
     
     printf("\n    Close this window to exit.\n\n");
     

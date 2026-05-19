@@ -87,7 +87,10 @@ bool Config::save()
 
 void Config::watchForChanges()
 {
-    m_configWatchThread = std::thread( configWatcher, &m_hasChanged );
+    size_t pos = m_filename.find_last_of("\\/");
+    std::string watchDir = (std::string::npos == pos) ? "." : m_filename.substr(0, pos);
+
+    m_configWatchThread = std::thread( configWatcher, &m_hasChanged, watchDir );
     m_configWatchThread.detach();
 }
 
