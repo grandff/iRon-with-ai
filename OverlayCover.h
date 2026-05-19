@@ -25,6 +25,7 @@ SOFTWARE.
 #pragma once
 
 #include "Overlay.h"
+#include <string>
 
 class OverlayCover : public Overlay
 {
@@ -33,4 +34,71 @@ class OverlayCover : public Overlay
         OverlayCover()
             : Overlay("OverlayCover")
         {}
+
+    protected:
+
+        virtual bool hasCustomBackground() override
+        {
+            return true;
+        }
+
+        virtual void onConfigChanged() override
+        {
+            const std::string font = g_cfg.getString(m_name, "font", "Microsoft YaHei UI");
+            const float fontSize = g_cfg.getFloat(m_name, "font_size", 16.0f);
+            
+            // Create Bold & Italic text format
+            HRCHECK(m_dwriteFactory->CreateTextFormat(
+                toWide(font).c_str(), 
+                NULL, 
+                DWRITE_FONT_WEIGHT_BOLD, 
+                DWRITE_FONT_STYLE_ITALIC, 
+                DWRITE_FONT_STRETCH_NORMAL, 
+                fontSize, 
+                L"en-us", 
+                &m_textFormat
+            ));
+            
+            // Align Bottom-Right
+            m_textFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+            m_textFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_FAR);
+        }
+
+        virtual void onUpdate() override
+        {
+            const float w = (float)m_width;
+            const float h = (float)m_height;
+            const float cornerRadius = g_cfg.getFloat( m_name, "corner_radius", 6.0f );
+
+            m_renderTarget->BeginDraw();
+            m_renderTarget->Clear( float4(0,0,0,0) );
+
+            // 1. Draw solid black background
+            D2D1_ROUNDED_RECT rr;
+            rr.rect = { 0.5f, 0.5f, w-0.5f, h-0.5f };
+            rr.radiusX = cornerRadius;
+            rr.radiusY = cornerRadius;
+            m_brush->SetColor( D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f) ); // Opaque Black
+            m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
+
+            // 2. Draw "iRon-advanced" text in the bottom right corner
+            m_brush->SetColor( D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.8f) ); // White (80% opacity)
+            
+            // Padding from edges (8px right, 4px bottom)
+            D2D1_RECT_F textRect = D2D1::RectF(0, 0, w - 8.0f, h - 4.0f);
+            
+            std::wstring watermark = L"iRon-advanced";
+            m_renderTarget->DrawTextW(
+                watermark.c_str(), 
+                (UINT32)watermark.length(), 
+                m_textFormat.Get(), 
+                textRect, 
+                m_brush.Get()
+            );
+
+            m_renderTarget->EndDraw();
+        }
+
+    private:
+        Microsoft::WRL::ComPtr<IDWriteTextFormat> m_textFormat;
 };
