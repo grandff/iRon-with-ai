@@ -1,6 +1,13 @@
-# iRon-Advanced - expanded lightweight overlays for iRacing
+<div align="center">
 
-## 🇬🇧 English (About & What's New)
+<h1>iRon-Advanced</h1>
+Expanded lightweight overlays for iRacing.<br><br>
+
+**English** | [**한국어**](./docs/ko/README.md)
+
+</div>
+
+---
 
 This project is an expanded version of the original `iRon` overlays, aiming to provide additional advanced features while maintaining the original philosophy. It incorporates highly requested features found in modern overlay suites (like Radar, Spotter, Flat Map, etc.). It remains extremely lightweight, easy to modify, and free of external runtime dependencies.
 
@@ -17,25 +24,6 @@ This project is an expanded version of the original `iRon` overlays, aiming to p
    * **Flat Map:** Linear traffic ribbon map.
    * **Delta Bar:** Real-time optimal/best lap delta gauge.
    * **Pit Helper:** Speed limit and pit stop repair timer.
-
----
-
-## 🇰🇷 한국어 (소개 및 달라진 점)
-
-이 프로젝트는 기존 `iRon` 오버레이를 대폭 확장한 버전입니다. '가볍고 외부 프로그램 의존성이 없다'는 기존의 철학을 그대로 유지하면서, 최신 오버레이들에서 지원하는 강력한 필수 기능들(레이더, 스포터, 일자형 맵 등)을 모두 통합했습니다.
-
-### 원본 iRon과 비교해서 무엇이 달라졌나요?
-1. **글로벌 레이아웃 완벽 저장 (위치 초기화 문제 해결!)**
-   * 원본 iRon은 프로그램을 껐다 켜면 창 위치가 매번 초기화되는 치명적인 단점이 있었습니다. **iRon-Advanced**는 사용자의 화면 배치 좌표, 창 크기, 그리고 오버레이를 켜고 끈 상태를 윈도우의 `내 문서\iRon_Advanced\config.json` 경로에 영구적으로 안전하게 저장합니다. 이제 게임을 켤 때마다 마지막에 설정해둔 화면 배치가 그대로 자동 복구됩니다!
-2. **순위표(Standings) 및 텔레메트리 고도화**
-   * 순위표 오버레이에 **실시간 예상 iRating 증감 수치 (+/-)** 가 추가되었으며, 내 주변 드라이버들이 어떤 차를 타고 있는지 알 수 있는 **차종(Car Model)** 텍스트 컬럼이 추가되었습니다.
-3. **7개의 강력한 신규 오버레이 추가:**
-   * **근접 레이더 (Radar), 시각적 스포터 (Spotter)**
-   * **사고/황기 스마트 알림 (Incident Warning):** 전방 150m 내 사고 발생 시 거리 표시.
-   * **멀티클래스 트래픽 경고 (Traffic):** 상위 클래스 차량 접근 시 랩타임 차이에 따른 동적 블루 플래그 UI.
-   * **일자형 맵 (Flat Map):** 전체 트랙의 트래픽을 한눈에 보는 리본 맵.
-   * **델타 바 (Delta Bar):** 최적 랩(Optimal) 대비 실시간 가로형 게이지.
-   * **피트 헬퍼 (Pit Helper):** 피트레인 진입 시 속도 제한 및 정차 수리 시간 표시.
 
 ---
 
