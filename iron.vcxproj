@@ -175,6 +175,9 @@
     <ClInclude Include="TelemetryLogger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include=".gitignore" />
     <None Include="config.json" />
     <None Include="LICENSE" />

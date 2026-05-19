@@ -1,0 +1,4 @@
+// resource.rc
+// This is the main resource file for the project.
+
+1 ICON "icon.ico"

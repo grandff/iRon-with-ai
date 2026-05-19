@@ -44,6 +44,9 @@
     <ClInclude Include="OverlayCover.h" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="LICENSE" />
     <None Include="README.md" />
     <None Include=".gitignore" />
