@@ -42,3 +42,5 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         gh release create ${{ github.ref_name }} "x64/Release/iRon_Advanced.exe" --title "${{ github.ref_name }}" --generate-notes
+        # 강제로 'Release ' 접두사가 붙는 GitHub API 고질적 버그를 해결하기 위해 생성 직후 타이틀을 다시 덮어씌움
+        gh release edit ${{ github.ref_name }} --title "${{ github.ref_name }}"
