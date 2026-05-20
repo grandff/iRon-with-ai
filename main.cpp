@@ -253,9 +253,10 @@ int main()
         if( status != prevStatus )
         {
             if( status == ConnectionStatus::DISCONNECTED )
-                printf(ANSI_BOLD ANSI_B_RED "  [ \x1b[5mWAITING\x1b[25m ] " ANSI_RESET "Waiting for iRacing connection...\n");
+                printf("\r" ANSI_BOLD ANSI_B_RED "  [ \x1b[5mWAITING\x1b[25m ] " ANSI_RESET "Waiting for iRacing connection...                       ");
             else
-                printf(ANSI_BOLD ANSI_GREEN "  [ CONNECTED ] " ANSI_RESET "iRacing active (%s)\n", ConnectionStatusStr[(int)status]);
+                printf("\r" ANSI_BOLD ANSI_GREEN "  [ CONNECTED ] " ANSI_RESET "iRacing active (%s)                       ", ConnectionStatusStr[(int)status]);
+            fflush(stdout);
 
             // Enable user-selected overlays, but only if we're driving
             handleConfigChange( overlays, status );
