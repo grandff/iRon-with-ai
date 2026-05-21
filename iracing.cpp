@@ -495,6 +495,9 @@ ConnectionStatus ir_tick()
             sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}CarScreenNameShort:", carIdx );
             parseYamlString( sessionYaml, path, &car.carName );
 
+            sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}ClubName:", carIdx );
+            parseYamlString( sessionYaml, path, &car.clubName );
+
             sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}CarClassEstLapTime:", carIdx );
             parseYamlFloat( sessionYaml, path, &car.carClassEstLapTime );
 

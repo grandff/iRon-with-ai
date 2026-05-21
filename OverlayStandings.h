@@ -35,7 +35,7 @@ public:
 
     const float DefaultFontSize = 15;
 
-    enum class Columns { POSITION, CAR_NUMBER, NAME, DELTA, BEST, LAST, LICENSE, IRATING, PIT };
+    enum class Columns { POSITION, CAR_NUMBER, CAR_NAME, CLUB_NAME, NAME, DELTA, BEST, LAST, LICENSE, IRATING, PIT };
 
     OverlayStandings()
         : Overlay("OverlayStandings")
@@ -73,6 +73,7 @@ protected:
         m_columns.add( (int)Columns::POSITION,   computeTextExtent( L"P99", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
         m_columns.add( (int)Columns::CAR_NUMBER, computeTextExtent( L"#999", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
         m_columns.add( (int)Columns::CAR_NAME,   computeTextExtent( L"Car Brand Text  ", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/2 );
+        m_columns.add( (int)Columns::CLUB_NAME,  computeTextExtent( L"Club Name Text  ", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/2 );
         m_columns.add( (int)Columns::NAME,       0, fontSize/2 );
         m_columns.add( (int)Columns::PIT,        computeTextExtent( L"P.Age", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
         m_columns.add( (int)Columns::LICENSE,    computeTextExtent( L"A 4.44", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/6 );
@@ -230,6 +231,14 @@ protected:
         swprintf( s, _countof(s), L"No." );
         m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
 
+        clm = m_columns.get( (int)Columns::CAR_NAME );
+        swprintf( s, _countof(s), L"Brand" );
+        m_text.render( m_renderTarget.Get(), s, m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
+
+        clm = m_columns.get( (int)Columns::CLUB_NAME );
+        swprintf( s, _countof(s), L"Club" );
+        m_text.render( m_renderTarget.Get(), s, m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
+
         clm = m_columns.get( (int)Columns::NAME );
         swprintf( s, _countof(s), L"Driver" );
         m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
@@ -306,6 +315,22 @@ protected:
                 m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
                 m_brush->SetColor( carNumberTextCol );
                 m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
+            }
+
+            // Car name
+            {
+                clm = m_columns.get( (int)Columns::CAR_NAME );
+                m_brush->SetColor( textCol );
+                swprintf( s, _countof(s), L"%S", car.carName.c_str() );
+                m_text.render( m_renderTarget.Get(), s, m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
+            }
+
+            // Club name
+            {
+                clm = m_columns.get( (int)Columns::CLUB_NAME );
+                m_brush->SetColor( textCol );
+                swprintf( s, _countof(s), L"%S", car.clubName.c_str() );
+                m_text.render( m_renderTarget.Get(), s, m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
             }
 
             // Name
@@ -443,12 +468,6 @@ protected:
 protected:
 
     Microsoft::WRL::ComPtr<IDWriteTextFormat>  m_textFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat>  m_textFormatSmall;
-
-    ColumnLayout m_columns;
-    TextCache    m_text;
-};
-xtFormat>  m_textFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat>  m_textFormatSmall;
 
     ColumnLayout m_columns;

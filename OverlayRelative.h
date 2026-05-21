@@ -42,7 +42,7 @@ class OverlayRelative : public Overlay
 
     protected:
 
-        enum class Columns { POSITION, CAR_NUMBER, NAME, DELTA, LICENSE, SAFETY_RATING, IRATING, PIT };
+        enum class Columns { POSITION, CAR_NUMBER, CAR_NAME, CLUB_NAME, NAME, DELTA, LICENSE, SAFETY_RATING, IRATING, PIT };
 
         virtual void onEnable()
         {
@@ -73,6 +73,8 @@ class OverlayRelative : public Overlay
             m_columns.reset();
             m_columns.add( (int)Columns::POSITION,   computeTextExtent( L"P99", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
             m_columns.add( (int)Columns::CAR_NUMBER, computeTextExtent( L"#999", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
+            m_columns.add( (int)Columns::CAR_NAME,   computeTextExtent( L"Car Brand Text  ", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/2 );
+            m_columns.add( (int)Columns::CLUB_NAME,  computeTextExtent( L"Club Name Text  ", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/2 );
             m_columns.add( (int)Columns::NAME,       0, fontSize/2 );
             m_columns.add( (int)Columns::DELTA,      computeTextExtent( L"+99L  -99.9", m_dwriteFactory.Get(), m_textFormat.Get() ).x, 1, fontSize/2 );
 
@@ -258,6 +260,22 @@ class OverlayRelative : public Overlay
                     m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
                     m_brush->SetColor( carNumberTextCol );
                     m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
+                }
+
+                // Car name
+                {
+                    clm = m_columns.get( (int)Columns::CAR_NAME );
+                    swprintf( s, _countof(s), L"%S", car.carName.c_str() );
+                    m_brush->SetColor( col );
+                    m_text.render( m_renderTarget.Get(), s, m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
+                }
+
+                // Club name
+                {
+                    clm = m_columns.get( (int)Columns::CLUB_NAME );
+                    swprintf( s, _countof(s), L"%S", car.clubName.c_str() );
+                    m_brush->SetColor( col );
+                    m_text.render( m_renderTarget.Get(), s, m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
                 }
 
                 // Name
