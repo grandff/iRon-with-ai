@@ -37,6 +37,7 @@ class Config
 
         bool                        load();
         bool                        save();
+        void                        setFilename( const std::string& filename ) { m_filename = filename; }
 
         void                        watchForChanges();
         bool                        hasChanged();

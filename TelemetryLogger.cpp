@@ -59,6 +59,7 @@ void TelemetryLogger::stop() {
         return;
     }
     m_stopRequested = true;
+    m_cv.notify_all();
     if (m_thread.joinable()) {
         m_thread.join();
     }
@@ -69,62 +70,72 @@ void TelemetryLogger::stop() {
     }
 }
 
+void TelemetryLogger::push(const TelemetryData& data) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_queue.push(data);
+    m_cv.notify_one();
+}
+
 void TelemetryLogger::loggingThread() {
-    while (!m_stopRequested.load()) {
-        // Only log when we are driving (or at least connected) and the session is valid
-        ConnectionStatus status = ir_tick(); // This also updates the session data
-        if (status == ConnectionStatus::DRIVING || status == ConnectionStatus::CONNECTED) {
+    while (true) {
+        std::vector<TelemetryData> localQueue;
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            m_cv.wait(lock, [this] { return !m_queue.empty() || m_stopRequested.load(); });
+            
+            if (m_stopRequested.load() && m_queue.empty()) {
+                break;
+            }
+            
+            while (!m_queue.empty()) {
+                localQueue.push_back(m_queue.front());
+                m_queue.pop();
+            }
+        }
+
+        for (const auto& data : localQueue) {
             // Prepare a JSON line with selected telemetry data
             std::ostringstream jsonStream;
             jsonStream << std::fixed << std::setprecision(3);
 
             jsonStream << "{";
-            jsonStream << "\"timestamp\":" << ir_SessionTime.getDouble() << ",";
-            jsonStream << "\"lap\":" << ir_Lap.getInt() << ",";
-            jsonStream << "\"lapCompleted\":" << ir_LapCompleted.getInt() << ",";
-            jsonStream << "\"lapDistPct\":" << ir_LapDistPct.getDouble() << ",";
-            jsonStream << "\"speed\":" << ir_Speed.getDouble() << ",";
-            jsonStream << "\"rpm\":" << ir_RPM.getDouble() << ",";
-            jsonStream << "\"gear\":" << ir_Gear.getInt() << ",";
-            jsonStream << "\"throttle\":" << ir_Throttle.getDouble() << ",";
-            jsonStream << "\"brake\":" << ir_Brake.getDouble() << ",";
-            jsonStream << "\"steering\":" << ir_SteeringWheelAngle.getDouble() << ",";
-            jsonStream << "\"fuelLevelPct\":" << ir_FuelLevelPct.getDouble() << ",";
-            jsonStream << "\"fuelLevel\":" << ir_FuelLevel.getDouble() << ",";
-            jsonStream << "\"waterTemp\":" << ir_WaterTemp.getDouble() << ",";
-            jsonStream << "\"oilTemp\":" << ir_OilTemp.getDouble() << ",";
-            jsonStream << "\"oilPressure\":" << ir_OilPress.getDouble() << ",";
-            jsonStream << "\"voltage\":" << ir_Voltage.getDouble() << ",";
-            jsonStream << "\"trackTemp\":" << ir_TrackTempCrew.getDouble() << ",";
-            jsonStream << "\"airTemp\":" << ir_AirTemp.getDouble() << ",";
-            jsonStream << "\"sessionState\":" << (int)ir_SessionState.getInt() << ",";
-            jsonStream << "\"sessionFlags\":" << ir_SessionFlags.getInt() << ",";
-            jsonStream << "\"driverCarIdx\":" << ir_session.driverCarIdx << ",";
-            jsonStream << "\"isOnTrackCar\":" << ir_IsOnTrackCar.getBool() << ",";
-            jsonStream << "\"isInGarage\":" << ir_IsInGarage.getBool() << "";
-
-            // Optionally, add more data like tire temperatures, pressures, etc.
-            // For brevity, we stop here.
-
+            jsonStream << "\"timestamp\":" << data.timestamp << ",";
+            jsonStream << "\"lap\":" << data.lap << ",";
+            jsonStream << "\"lapCompleted\":" << data.lapCompleted << ",";
+            jsonStream << "\"lapDistPct\":" << data.lapDistPct << ",";
+            jsonStream << "\"speed\":" << data.speed << ",";
+            jsonStream << "\"rpm\":" << data.rpm << ",";
+            jsonStream << "\"gear\":" << data.gear << ",";
+            jsonStream << "\"throttle\":" << data.throttle << ",";
+            jsonStream << "\"brake\":" << data.brake << ",";
+            jsonStream << "\"steering\":" << data.steering << ",";
+            jsonStream << "\"fuelLevelPct\":" << data.fuelLevelPct << ",";
+            jsonStream << "\"fuelLevel\":" << data.fuelLevel << ",";
+            jsonStream << "\"waterTemp\":" << data.waterTemp << ",";
+            jsonStream << "\"oilTemp\":" << data.oilTemp << ",";
+            jsonStream << "\"oilPressure\":" << data.oilPress << ",";
+            jsonStream << "\"voltage\":" << data.voltage << ",";
+            jsonStream << "\"trackTemp\":" << data.trackTemp << ",";
+            jsonStream << "\"airTemp\":" << data.airTemp << ",";
+            jsonStream << "\"sessionState\":" << data.sessionState << ",";
+            jsonStream << "\"sessionFlags\":" << data.sessionFlags << ",";
+            jsonStream << "\"driverCarIdx\":" << data.driverCarIdx << ",";
+            jsonStream << "\"isOnTrackCar\":" << data.isOnTrackCar << ",";
+            jsonStream << "\"isInGarage\":" << data.isInGarage << "";
             jsonStream << "}" << std::endl;
 
             if (m_file.is_open()) {
                 m_file << jsonStream.str();
-                // Check if it's time to flush (every 5 minutes)
-                auto now = std::chrono::steady_clock::now();
-                if (std::chrono::duration_cast<std::chrono::minutes>(now - m_lastFlush) >= m_flushInterval) {
-                    m_file.flush();
-                    m_lastFlush = now;
-                }
             }
         }
 
-        // Sleep a bit to avoid hogging the CPU; we want to log at about 60Hz but we can do less for the file.
-        // The ir_tick() call already waits for new data (about 16ms). We'll just loop.
-        // However, note that ir_tick() blocks until new data is available, so we don't need an extra sleep.
-        // But to avoid spinning too fast when not connected, we can sleep a little.
-        if (status != ConnectionStatus::DRIVING && status != ConnectionStatus::CONNECTED) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        if (m_file.is_open()) {
+            // Check if it's time to flush (every 5 minutes)
+            auto now = std::chrono::steady_clock::now();
+            if (std::chrono::duration_cast<std::chrono::minutes>(now - m_lastFlush) >= m_flushInterval) {
+                m_file.flush();
+                m_lastFlush = now;
+            }
         }
     }
 }

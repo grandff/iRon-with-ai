@@ -78,17 +78,7 @@ void EnableANSIColors() {
     SetConsoleMode(hOut, dwMode);
 }
 
-std::string getDesktopPath() {
-    char path[MAX_PATH];
-    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PERSONAL, NULL, 0, path))) {
-        std::string dir = std::string(path) + "\\iRon_Advanced";
-        CreateDirectoryA(dir.c_str(), NULL);
-        return dir + "\\telemetry_debug.log";
-    }
-    return "telemetry_debug.log";
-}
-
-TelemetryLogger g_telemetryLogger(getDesktopPath());
+TelemetryLogger* g_telemetryLogger = nullptr;
 
 
 enum class Hotkey
@@ -151,7 +141,7 @@ static void registerHotkeys()
         RegisterHotKey( NULL, (int)Hotkey::FlatMap, mod, vk );
 }
 
-static void handleConfigChange( std::vector<Overlay*> overlays, ConnectionStatus status )
+static void handleConfigChange( std::vector<Overlay*> overlays, ConnectionStatus status, bool uiEdit )
 {
     registerHotkeys();
 
@@ -160,6 +150,7 @@ static void handleConfigChange( std::vector<Overlay*> overlays, ConnectionStatus
     for( Overlay* o : overlays )
     {
         o->enable( g_cfg.getBool(o->getName(),"enabled",true) && (
+            uiEdit ||
             status == ConnectionStatus::DRIVING ||
             status == ConnectionStatus::CONNECTED && o->canEnableWhileNotDriving() ||
             status == ConnectionStatus::DISCONNECTED && o->canEnableWhileDisconnected()
@@ -183,11 +174,17 @@ int main()
     // Bump priority up so we get time from the sim
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 
+    // Get dynamic folder in My Documents and set it up
+    std::string ronDir = getRonDir();
+
     // Load the config and watch it for changes
+    g_cfg.setFilename(ronDir + "config.json");
     g_cfg.load();
     g_cfg.watchForChanges();
-        // Start telemetry logging
-        g_telemetryLogger.start();
+
+    // Start telemetry logging dynamically
+    g_telemetryLogger = new TelemetryLogger(ronDir + "telemetry_debug.log");
+    g_telemetryLogger->start();
 
     // Register global hotkeys
     registerHotkeys();
@@ -258,8 +255,8 @@ int main()
                 printf("\r" ANSI_BOLD ANSI_GREEN "  [ CONNECTED ] " ANSI_RESET "iRacing active (%s)                       ", ConnectionStatusStr[(int)status]);
             fflush(stdout);
 
-            // Enable user-selected overlays, but only if we're driving
-            handleConfigChange( overlays, status );
+            // Enable user-selected overlays, passing uiEdit state
+            handleConfigChange( overlays, status, uiEdit );
         }
 
         if( ir_session.sessionType != prevSessionType )
@@ -269,6 +266,38 @@ int main()
         }
 
         dbg( "connection status: %s, session type: %s, session state: %d, pace mode: %d, on track: %d, flags: 0x%X", ConnectionStatusStr[(int)status], SessionTypeStr[(int)ir_session.sessionType], ir_SessionState.getInt(), ir_PaceMode.getInt(), (int)ir_IsOnTrackCar.getBool(), ir_SessionFlags.getInt() );
+
+        // Push telemetry snapshot to logger queue if driving/connected
+        if (status == ConnectionStatus::DRIVING || status == ConnectionStatus::CONNECTED)
+        {
+            TelemetryData tdata;
+            tdata.timestamp = ir_SessionTime.getDouble();
+            tdata.lap = ir_Lap.getInt();
+            tdata.lapCompleted = ir_LapCompleted.getInt();
+            tdata.lapDistPct = ir_LapDistPct.getDouble();
+            tdata.speed = ir_Speed.getDouble();
+            tdata.rpm = ir_RPM.getDouble();
+            tdata.gear = ir_Gear.getInt();
+            tdata.throttle = ir_Throttle.getDouble();
+            tdata.brake = ir_Brake.getDouble();
+            tdata.steering = ir_SteeringWheelAngle.getDouble();
+            tdata.fuelLevelPct = ir_FuelLevelPct.getDouble();
+            tdata.fuelLevel = ir_FuelLevel.getDouble();
+            tdata.waterTemp = ir_WaterTemp.getDouble();
+            tdata.oilTemp = ir_OilTemp.getDouble();
+            tdata.oilPress = ir_OilPress.getDouble();
+            tdata.voltage = ir_Voltage.getDouble();
+            tdata.trackTemp = ir_TrackTempCrew.getDouble();
+            tdata.airTemp = ir_AirTemp.getDouble();
+            tdata.sessionState = ir_SessionState.getInt();
+            tdata.sessionFlags = ir_SessionFlags.getInt();
+            tdata.driverCarIdx = ir_session.driverCarIdx;
+            tdata.isOnTrackCar = ir_IsOnTrackCar.getBool();
+            tdata.isInGarage = ir_IsInGarage.getBool();
+            if (g_telemetryLogger) {
+                g_telemetryLogger->push(tdata);
+            }
+        }
 
         // Update/render overlays
         {
@@ -297,7 +326,7 @@ int main()
         if( g_cfg.hasChanged() )
         {
             g_cfg.load();
-            handleConfigChange( overlays, status );
+            handleConfigChange( overlays, status, uiEdit );
         }
 
         // Message pump
@@ -312,6 +341,9 @@ int main()
                     uiEdit = !uiEdit;
                     for( Overlay* o : overlays )
                         o->enableUiEdit( uiEdit );
+
+                    // Update overlays immediately on UI edit state changes
+                    handleConfigChange( overlays, status, uiEdit );
 
                     // When we're exiting edit mode, attempt to make iRacing the foreground window again for best perf
                     // without the user having to manually click into iRacing.
@@ -355,7 +387,7 @@ int main()
                     }
                     
                     g_cfg.save();
-                    handleConfigChange( overlays, status );
+                    handleConfigChange( overlays, status, uiEdit );
                 }
             }
 
@@ -368,7 +400,10 @@ int main()
 
     for( Overlay* o : overlays )
         delete o;
-}
-   for( Overlay* o : overlays )
-        delete o;
+
+    if (g_telemetryLogger) {
+        g_telemetryLogger->stop();
+        delete g_telemetryLogger;
+        g_telemetryLogger = nullptr;
+    }
 }

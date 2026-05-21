@@ -1,7 +1,7 @@
 <div align="center">
 
 <h1>iRon-Advanced</h1>
-Expanded lightweight overlays for iRacing.<br><br>
+Lightweight and powerful expanded overlays for iRacing<br><br>
 
 **English** | [**한국어**](./docs/ko/README.md)
 
@@ -9,30 +9,30 @@ Expanded lightweight overlays for iRacing.<br><br>
 
 ---
 
-This project is an expanded version of the original `iRon` overlays, aiming to provide additional advanced features while maintaining its core philosophy: remaining extremely lightweight, easy to modify, and free of external runtime dependencies. It incorporates highly requested features found in modern overlay suites (like Radar, Spotter, Flat Map, etc.).
+This project is a heavily expanded version of the original `iRon` overlay. While preserving the core philosophy of the original project—being extremely lightweight and free of external runtime dependencies—it adds powerful, must-have features for iRacing players.
 
-> **Based on the original iRon project by lespalt:** [https://github.com/lespalt/iRon](https://github.com/lespalt/iRon)
+> **Based on the original iRon project (by lespalt):** [https://github.com/lespalt/iRon](https://github.com/lespalt/iRon)
 
 <br>
 
 ### ✨ What's different from the original iRon?
 
-**1. 💾 Global Layout Persistence (No more resetting positions!)**
-* The original iRon lost window positions if the app was restarted. 
-* In **iRon-Advanced**, your overlay positions, sizes, and toggle states (on/off) are safely and globally saved to `Documents\iRon_Advanced\config.json`. Every time you launch the `.exe`, your exact last layout is restored automatically.
+**1. 💾 Global Layout Auto-Save**
+* The original iRon suffered from window positions resetting every time the application restarted.
+* **iRon-Advanced** saves your screen coordinate layout, window sizes, and overlay toggle states (On/Off) in the Windows `Documents\iRon_Advanced\config.json` path. When re-launched, your last layout is perfectly restored!
 
-**2. 📊 Enhanced Telemetry & Standings**
-* The Standings overlay now calculates **real-time Expected iRating changes (+/-)** based on the Elo system.
-* Displays the **Car Model/Manufacturer** column so you know exactly what everyone is driving.
+**2. 📊 Enhanced Standings & Telemetry**
+* Added **real-time Expected iRating changes (+/-)** to the Standings overlay, based on the Elo rating system.
+* Added a **Car Model** text column so you can see exactly which cars the surrounding drivers are using.
 
 **3. 🚀 7 Brand New Overlays Added:**
-* **Radar:** Proximity top-down radar.
-* **Spotter:** Visual blind-spot warnings.
-* **Incident Warning:** Smart forward-crash detection.
-* **Traffic (Multiclass):** Dynamic blue-flag warnings for faster approaching classes.
-* **Flat Map:** Linear traffic ribbon map.
-* **Delta Bar:** Real-time optimal/best lap delta gauge.
-* **Pit Helper:** Speed limit and pit stop repair timer.
+* **Radar (Proximity Radar):** A top-down proximity radar.
+* **Spotter (Visual Spotter):** Visual warnings for blind spots.
+* **Incident Warning (Smart Incident):** Blinking warning banner and exact distance display for crashes within 150m ahead.
+* **Traffic (Multiclass Traffic):** Dynamic blue flag UI based on lap time pace differences when faster classes approach from behind.
+* **Flat Map (Ribbon Map):** A linear track ribbon map visualizing overall traffic density.
+* **Delta Bar (Real-time Delta):** A horizontal real-time optimal/best delta gauge.
+* **Pit Helper (Pit Stop Assistant):** Speed limit warning and repair countdown timer in the pit lane.
 
 ---
 
@@ -54,7 +54,7 @@ This project is an expanded version of the original `iRon` overlays, aiming to p
   - [*Pit Helper (NEW)*](#pit-helper-new)
 - [Installing & Running](#-installing--running)
 - [Configuration](#️-configuration)
-- [Building from source](#️-building-from-source)
+- [Building from Source](#️-building-from-source)
 - [Dependencies](#-dependencies)
 
 ---
@@ -75,22 +75,22 @@ At the top is an optional minimap. It can be set to either relative mode (own ca
 
 ### *DDU*
 A dashboard that concentrates important pieces of information for which you would otherwise have to flip through various boxes in iRacing.
-The fuel calculator shows the estimated remaining laps, remaining amount of fuel, estimated fuel used per lap, estimated _additional_ fuel required to finish the race, and the fuel amount that is scheduled to be added on the next pit stop. To compute the estimated fuel consumption, the last 4 laps under green and without pit stops are taken into account, and a 5% safety margin is added. These parameters can be customized.
+The fuel calculator shows the estimated remaining laps, remaining amount of fuel, estimated fuel used per lap, estimated _additional_ fuel required to finish the race, and the fuel amount that is scheduled to be added on the next pit stop.
 
 ![ddu](https://github.com/lespalt/iRon/blob/main/ddu.png?raw=true)
 
 ### *Inputs*
-Shows throttle/brake/steering in a moving graph. I find it useful to practice consistent braking.
+Shows throttle/brake/steering in a moving graph. Extremely useful to practice consistent trail braking.
 
 ![inputs](https://github.com/lespalt/iRon/blob/main/inputs.png?raw=true)
 
 ### *Standings*
-Shows the standings of the entire field, including safety rating, iRating, number of laps since the last pit stop ("pit age"), **real-time Expected iRating changes**, and **Car Model**. I usually leave this off by default and switch it on during cautions. Or glimpse at it pre-race to get a sense of the competition level.
+Shows the standings of the entire field, including safety rating, iRating, number of laps since the last pit stop ("pit age"), **real-time Expected iRating changes**, and **Car Model**. Mainly useful during caution periods or pre-race to get a sense of the competition level.
 
 ![standings](https://github.com/lespalt/iRon/blob/main/standings.png?raw=true)
 
 ### *Cover*
-No screenshot for this one, because all it is is a blank rectangle. Can be useful to cover up distracting in-game dashboards, like the one in the next-gen NASCAR.
+We skip the screenshot for this one. It is a simple blank black rectangle, useful to cover up distracting in-game dashboards like the one in the next-gen NASCAR.
 
 ### *Spotter (NEW)*
 A visual spotter that draws transparent colored rectangles on the left and right sides of your screen when a car is in your blind spot. This directly taps into iRacing's built-in spotter telemetry.
@@ -131,28 +131,28 @@ A dedicated overlay that only appears when entering the pit lane. It displays yo
 
 ## 🚀 Installing & Running
 
-The app does not require installation. Just copy the executable to a folder of your choice.
+The app does not require installation. Just copy the executable (`.exe`) to a folder of your choice.
 
-To use it, simply run the executable. It doesn't matter whether you do this before or after launching iRacing. A console window will pop up, indicating that iRon is running. Once you're in the car in iRacing, the overlays should show up, and you can configure things to your liking. I recommend running iRacing in borderless window mode. Overlays *might* work in other modes as well, but I haven't tested it.
+To use it, simply double-click the executable. It doesn't matter whether you do this before or after launching iRacing. A console window will pop up, indicating that iRon is running. Once you're in the car in iRacing, the overlays should show up. We highly recommend running iRacing in **Borderless Window** mode.
 
 ---
 
 ## ⚙️ Configuration
 
-To place and resize the overlays, press **ALT-J**. This will enter a mode in which you can move overlays around with the mouse and resize them by dragging their bottom-right corner. Press **ALT-J** again to go back to normal mode.
+To place and resize the overlays, press **ALT-J**. This will enter a layout edit mode where you can move overlays around with the mouse and resize them by dragging their bottom-right corner. Press **ALT-J** again to go back to normal mode.
 
 Overlays can be switched on and off at runtime using the hotkeys displayed during startup. All hotkeys are configurable.
 
 Your layout and settings are automatically and globally saved to:
 `Documents\iRon_Advanced\config.json`
 
-Certain aspects of the overlays, such as colors, font types, sizes etc. can be customized. To do that, open `config.json` and experiment by editing the parameters. You can do that while the app is running -- the changes will take effect immediately whenever the file is saved.
+Certain aspects of the overlays, such as colors, font types, sizes etc. can be customized. To do that, open `config.json` and experiment by editing the parameters. You can do that while the app is running -- the changes will take effect immediately whenever the file is saved!
 
 ---
 
-## 🛠️ Building from source
+## 🛠️ Building from Source
 
-This app is built with Visual Studio 2022. The free version should suffice, though I haven't verified it. The project/solution files should work out of the box. Depending on your Visual Studio setup, you may need to install additional prerequisites (static libs) needed to build DirectX applications.
+This app is built with Visual Studio 2022. The free version should suffice, though we haven't verified it. The project/solution files should work out of the box. Depending on your Visual Studio setup, you may need to install additional prerequisites (static libs) needed to build DirectX applications.
 
 ---
 

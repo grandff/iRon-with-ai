@@ -29,7 +29,36 @@ SOFTWARE.
 #include <thread>
 #include <atomic>
 #include <chrono>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 #include "iracing.h"
+
+struct TelemetryData {
+    double timestamp;
+    int lap;
+    int lapCompleted;
+    double lapDistPct;
+    double speed;
+    double rpm;
+    int gear;
+    double throttle;
+    double brake;
+    double steering;
+    double fuelLevelPct;
+    double fuelLevel;
+    double waterTemp;
+    double oilTemp;
+    double oilPress;
+    double voltage;
+    double trackTemp;
+    double airTemp;
+    int sessionState;
+    int sessionFlags;
+    int driverCarIdx;
+    bool isOnTrackCar;
+    bool isInGarage;
+};
 
 class TelemetryLogger {
 public:
@@ -38,6 +67,7 @@ public:
 
     void start();
     void stop();
+    void push(const TelemetryData& data);
 
 private:
     void loggingThread();
@@ -49,4 +79,8 @@ private:
     std::atomic<bool> m_stopRequested{false};
     std::chrono::steady_clock::time_point m_lastFlush;
     const std::chrono::minutes m_flushInterval{5};
+
+    std::queue<TelemetryData> m_queue;
+    std::mutex m_mutex;
+    std::condition_variable m_cv;
 };

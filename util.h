@@ -34,6 +34,7 @@ SOFTWARE.
 #include <dwrite.h>
 #include <unordered_map>
 #include <ctype.h>
+#include <shlobj.h>
 
 #define HRCHECK( x_ ) do{ \
     HRESULT hr_ = x_; \
@@ -41,6 +42,18 @@ SOFTWARE.
         printf("ERROR: failed call to %s (%s:%d), hr=0x%x\n", #x_, __FILE__, __LINE__,hr_); \
         exit(1); \
     } } while(0)
+
+inline std::string getRonDir()
+{
+    char path[MAX_PATH];
+    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PERSONAL, NULL, 0, path))) {
+        std::string ronDir = std::string(path) + "\\iRon_Advanced";
+        CreateDirectoryA(ronDir.c_str(), NULL);
+        return ronDir + "\\";
+    }
+    return "";
+}
+
 
 struct float2
 {

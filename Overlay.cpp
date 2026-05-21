@@ -34,6 +34,9 @@ static const int ResizeBorderWidth = 25;
 
 static LRESULT CALLBACK windowProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam )
 {
+    if( msg == WM_ERASEBKGND )
+        return 1;
+
     Overlay* o = (Overlay*)GetWindowLongPtr( hwnd, GWLP_USERDATA );
 
     if( !o || !o->isUiEditEnabled() )
@@ -142,7 +145,7 @@ void Overlay::enable( bool on )
             wndclass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
             wndclass.lpfnWndProc = windowProc;
             wndclass.lpszClassName = wndclassName;
-            wndclass.hbrBackground = CreateSolidBrush(0);
+            wndclass.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
             RegisterClassEx(&wndclass);
         }
 
@@ -338,7 +341,7 @@ void Overlay::update()
         Microsoft::WRL::ComPtr<IDWriteTextFormat> tempFormat;
         if(SUCCEEDED(m_dwriteFactory->CreateTextFormat(L"Consolas", NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 16.0f, L"en-us", &tempFormat))) {
             std::wstring wname(m_name.begin(), m_name.end());
-            m_renderTarget->DrawTextW(wname.c_str(), (UINT32)wname.length(), tempFormat.Get(), { 5.0f, 2.0f, 300.0f, 25.0f }, m_brush.Get());
+            m_renderTarget->DrawText(wname.c_str(), (UINT32)wname.length(), tempFormat.Get(), { 5.0f, 2.0f, 300.0f, 25.0f }, m_brush.Get());
         }
     }
 

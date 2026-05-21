@@ -88,7 +88,7 @@ class OverlayCover : public Overlay
             D2D1_RECT_F textRect = D2D1::RectF(0, 0, w - 8.0f, h - 4.0f);
             
             std::wstring watermark = L"iRon-advanced";
-            m_renderTarget->DrawTextW(
+            m_renderTarget->DrawText(
                 watermark.c_str(), 
                 (UINT32)watermark.length(), 
                 m_textFormat.Get(), 
