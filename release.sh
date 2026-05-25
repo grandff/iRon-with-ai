@@ -63,13 +63,13 @@ echo "🚀 새로운 릴리즈 태그($NEW_TAG)를 생성하고 원격 저장소
 echo "[1/3] 메인 브랜치 코드 푸시 중..."
 git push origin main
 
-# 로컬에 새 태그 생성
+# 로컬에 새 태그 생성 (기존 태그 강제 덮어쓰기 허용)
 echo "[2/3] 로컬 태그($NEW_TAG) 생성 중..."
-git tag $NEW_TAG
+git tag -f $NEW_TAG
 
-# 생성된 태그를 원격 저장소(GitHub)로 푸시 (이때 Action이 동작함!)
+# 생성된 태그를 원격 저장소(GitHub)로 강제 푸시 (기존 원격 태그 덮어쓰기 및 Actions 트리거)
 echo "[3/3] 태그 푸시 및 GitHub Actions 트리거 가동..."
-git push origin $NEW_TAG
+git push -f origin $NEW_TAG
 
 echo ""
 echo "✅ 완료되었습니다! GitHub Actions에서 자동으로 빌드 및 릴리즈를 진행하고 있습니다."

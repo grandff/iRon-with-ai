@@ -58,6 +58,7 @@ class Overlay
 
         void            setWindowPosAndSize( int x, int y, int w, int h, bool callSetWindowPos=true );
         void            saveWindowPosAndSize();
+        virtual float2  getDefaultSize();
 
     protected:
 
@@ -66,7 +67,6 @@ class Overlay
         virtual void    onUpdate();
         virtual void    onConfigChanged();
         virtual void    onSessionChanged();
-        virtual float2  getDefaultSize();
         virtual bool    hasCustomBackground();
 
         std::string     m_name;

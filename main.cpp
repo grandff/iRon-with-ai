@@ -95,7 +95,8 @@ enum class Hotkey
     Spotter,
     Radar,
     Incident,
-    FlatMap
+    FlatMap,
+    TireDash
 };
 
 static void registerHotkeys()
@@ -110,6 +111,7 @@ static void registerHotkeys()
     UnregisterHotKey( NULL, (int)Hotkey::Radar );
     UnregisterHotKey( NULL, (int)Hotkey::Incident );
     UnregisterHotKey( NULL, (int)Hotkey::FlatMap );
+    UnregisterHotKey( NULL, (int)Hotkey::TireDash );
 
     UINT vk, mod;
 
@@ -142,6 +144,9 @@ static void registerHotkeys()
 
     if( parseHotkey( g_cfg.getString("OverlayFlatMap","toggle_hotkey","ctrl-8"),&mod,&vk) )
         RegisterHotKey( NULL, (int)Hotkey::FlatMap, mod, vk );
+
+    if( parseHotkey( g_cfg.getString("OverlayTireDash","toggle_hotkey","ctrl-9"),&mod,&vk) )
+        RegisterHotKey( NULL, (int)Hotkey::TireDash, mod, vk );
 }
 
 static void handleConfigChange( std::vector<Overlay*> overlays, ConnectionStatus status, bool uiEdit )
