@@ -77,8 +77,6 @@ inline void logMsg(const char* level, const char* format, ...)
     vsnprintf(message, sizeof(message), format, args);
     va_end(args);
     
-    printf("[%s] [%s] %s\n", timeStr, level, message);
-    
     char dbgMsg[2560];
     sprintf_s(dbgMsg, "[iRon] [%s] [%s] %s\n", timeStr, level, message);
     OutputDebugStringA(dbgMsg);
@@ -390,7 +388,7 @@ class TextCache
             const float fontSize = textFormat->GetFontSize();
 
             const D2D1_RECT_F r = { xmin, ycenter-fontSize, xmax, ycenter+fontSize };
-            renderTarget->DrawTextLayout( float2(xmin,ycenter-fontSize), textLayout, brush, D2D1_DRAW_TEXT_OPTIONS_CLIP );
+            renderTarget->DrawTextLayout( float2(xmin,ycenter-fontSize), textLayout, brush, D2D1_DRAW_TEXT_OPTIONS_CLIP | D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT );
         }
 
         //
@@ -520,3 +518,97 @@ inline bool parseHotkey( const std::string& desc, UINT* mod, UINT* vk )
 
     return false;
 }
+
+inline std::wstring getCountryFlagEmoji(const std::string& clubName) {
+    if (clubName.empty()) return L"🏳️";
+    
+    // Normalize or match common iRacing club names
+    if (clubName == "Korea") return L"🇰🇷";
+    if (clubName == "Japan") return L"🇯🇵";
+    if (clubName == "United States" || clubName == "USA") return L"🇺🇸";
+    if (clubName == "Deutschland" || clubName == "Germany") return L"🇩🇪";
+    if (clubName == "United Kingdom" || clubName == "UK" || clubName == "Celtic") return L"🇬🇧";
+    if (clubName == "France") return L"🇫🇷";
+    if (clubName == "Italy") return L"🇮🇹";
+    if (clubName == "Spain") return L"🇪🇸";
+    if (clubName == "Canada") return L"🇨🇦";
+    if (clubName == "Australia" || clubName == "Australia/NZ") return L"🇦🇺";
+    if (clubName == "Brazil") return L"🇧🇷";
+    if (clubName == "Netherlands") return L"🇳🇱";
+    if (clubName == "Sweden") return L"🇸🇪";
+    if (clubName == "Finland") return L"🇫🇮";
+    if (clubName == "Belgium") return L"🇧🇪";
+    if (clubName == "Austria" || clubName == "Switzerland") return L"🇦🇹";
+    
+    // Fallback: search for substrings
+    if (clubName.find("Korea") != std::string::npos) return L"🇰🇷";
+    if (clubName.find("Japan") != std::string::npos) return L"🇯🇵";
+    if (clubName.find("America") != std::string::npos || clubName.find("States") != std::string::npos) return L"🇺🇸";
+    if (clubName.find("Germany") != std::string::npos || clubName.find("Deutschland") != std::string::npos) return L"🇩🇪";
+    if (clubName.find("Celtic") != std::string::npos || clubName.find("UK") != std::string::npos || clubName.find("England") != std::string::npos) return L"🇬🇧";
+    
+    return L"🏳️";
+}
+
+struct BrandBadge {
+    std::wstring abbreviation;
+    float4 bgCol;
+    float4 textCol;
+};
+
+inline BrandBadge getBrandBadge(const std::string& carName) {
+    // Default fallback
+    BrandBadge badge = { L"CAR", float4(0.3f, 0.3f, 0.3f, 0.8f), float4(1.0f, 1.0f, 1.0f, 1.0f) };
+    
+    if (carName.empty()) return badge;
+    
+    // Match common iRacing brands
+    if (carName.find("Porsche") != std::string::npos) {
+        badge.abbreviation = L"POR";
+        badge.bgCol = float4(0.1f, 0.1f, 0.1f, 0.9f); // Dark Gray
+        badge.textCol = float4(0.95f, 0.8f, 0.0f, 1.0f); // Porsche Gold/Yellow
+    }
+    else if (carName.find("Ferrari") != std::string::npos) {
+        badge.abbreviation = L"FER";
+        badge.bgCol = float4(0.85f, 0.05f, 0.05f, 0.9f); // Ferrari Red
+        badge.textCol = float4(1.0f, 1.0f, 0.0f, 1.0f); // Ferrari Yellow Text
+    }
+    else if (carName.find("BMW") != std::string::npos) {
+        badge.abbreviation = L"BMW";
+        badge.bgCol = float4(0.0f, 0.46f, 0.78f, 0.9f); // BMW Blue
+        badge.textCol = float4(1.0f, 1.0f, 1.0f, 1.0f); // White
+    }
+    else if (carName.find("Mazda") != std::string::npos) {
+        badge.abbreviation = L"MAZ";
+        badge.bgCol = float4(0.45f, 0.45f, 0.45f, 0.9f); // Metallic Silver
+        badge.textCol = float4(0.08f, 0.36f, 0.72f, 1.0f); // Blue Accents
+    }
+    else if (carName.find("Audi") != std::string::npos) {
+        badge.abbreviation = L"AUD";
+        badge.bgCol = float4(0.7f, 0.7f, 0.7f, 0.9f); // Light Silver
+        badge.textCol = float4(0.9f, 0.1f, 0.1f, 1.0f); // Red
+    }
+    else if (carName.find("Mercedes") != std::string::npos || carName.find("AMG") != std::string::npos) {
+        badge.abbreviation = L"MER";
+        badge.bgCol = float4(0.05f, 0.05f, 0.05f, 0.9f); // AMG Black/Silver
+        badge.textCol = float4(0.0f, 0.9f, 0.9f, 1.0f); // Petronas Teal
+    }
+    else if (carName.find("Chevrolet") != std::string::npos || carName.find("Corvette") != std::string::npos) {
+        badge.abbreviation = L"CHEV";
+        badge.bgCol = float4(0.9f, 0.68f, 0.0f, 0.9f); // Chevy Gold
+        badge.textCol = float4(0.05f, 0.1f, 0.25f, 1.0f); // Dark Blue
+    }
+    else if (carName.find("Lamborghini") != std::string::npos) {
+        badge.abbreviation = L"LAM";
+        badge.bgCol = float4(0.05f, 0.05f, 0.05f, 0.9f); // Carbon Black
+        badge.textCol = float4(0.85f, 0.65f, 0.13f, 1.0f); // Gold
+    }
+    else if (carName.find("McLaren") != std::string::npos) {
+        badge.abbreviation = L"MCL";
+        badge.bgCol = float4(1.0f, 0.45f, 0.0f, 0.9f); // Papaya Orange
+        badge.textCol = float4(0.05f, 0.05f, 0.05f, 1.0f); // Black
+    }
+    
+    return badge;
+}
+

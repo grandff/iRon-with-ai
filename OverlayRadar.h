@@ -17,7 +17,7 @@ protected:
 
     virtual float2 getDefaultSize() override
     {
-        return float2{ 200, 400 };
+        return float2{ 120, 320 };
     }
 
     virtual void onUpdate() override
@@ -41,7 +41,7 @@ protected:
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> playerBrush;
         m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.8f, 0.0f, 1.0f), &playerBrush);
         D2D1_ROUNDED_RECT playerRect = D2D1::RoundedRect(
-            D2D1::RectF(centerX - 10, centerY - 20, centerX + 10, centerY + 20), 4.0f, 4.0f
+            D2D1::RectF(centerX - 6, centerY - 12, centerX + 6, centerY + 12), 3.0f, 3.0f
         );
         m_renderTarget->FillRoundedRectangle(&playerRect, playerBrush.Get());
 
@@ -56,12 +56,12 @@ protected:
         // UI 에디트 모드 시 가상의 차량 렌더링
         if (m_uiEditEnabled) {
             D2D1_ROUNDED_RECT dummy1 = D2D1::RoundedRect(
-                D2D1::RectF(centerX - 35, centerY + 10, centerX - 15, centerY + 50), 4.0f, 4.0f
+                D2D1::RectF(centerX - 31, centerY + 10, centerX - 19, centerY + 34), 3.0f, 3.0f
             );
             m_renderTarget->FillRoundedRectangle(&dummy1, otherCarBrush.Get());
             
             D2D1_ROUNDED_RECT dummy2 = D2D1::RoundedRect(
-                D2D1::RectF(centerX - 10, centerY - 80, centerX + 10, centerY - 40), 4.0f, 4.0f
+                D2D1::RectF(centerX - 6, centerY - 60, centerX + 6, centerY - 36), 3.0f, 3.0f
             );
             m_renderTarget->FillRoundedRectangle(&dummy2, otherCarBrush.Get());
             return;
@@ -110,7 +110,7 @@ protected:
                 float screenY = centerY - (distMeters * scale);
 
                 D2D1_ROUNDED_RECT rect = D2D1::RoundedRect(
-                    D2D1::RectF(screenX - 10, screenY - 20, screenX + 10, screenY + 20), 4.0f, 4.0f
+                    D2D1::RectF(screenX - 6, screenY - 12, screenX + 6, screenY + 12), 3.0f, 3.0f
                 );
                 
                 m_renderTarget->FillRoundedRectangle(&rect, otherCarBrush.Get());

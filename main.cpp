@@ -46,9 +46,7 @@ SOFTWARE.
 #include "OverlaySpotter.h"
 #include "OverlayRadar.h"
 #include "OverlayIncident.h"
-#include "OverlayFlatMap.h"
 #include "OverlayTraffic.h"
-#include "OverlayDeltaBar.h"
 #include "OverlayPitHelper.h"
 #include "OverlayTireDash.h"
 #include "TelemetryLogger.h"
@@ -95,7 +93,6 @@ enum class Hotkey
     Spotter,
     Radar,
     Incident,
-    FlatMap,
     TireDash
 };
 
@@ -110,7 +107,6 @@ static void registerHotkeys()
     UnregisterHotKey( NULL, (int)Hotkey::Spotter );
     UnregisterHotKey( NULL, (int)Hotkey::Radar );
     UnregisterHotKey( NULL, (int)Hotkey::Incident );
-    UnregisterHotKey( NULL, (int)Hotkey::FlatMap );
     UnregisterHotKey( NULL, (int)Hotkey::TireDash );
 
     UINT vk, mod;
@@ -142,10 +138,7 @@ static void registerHotkeys()
     if( parseHotkey( g_cfg.getString("OverlayIncident","toggle_hotkey","ctrl-7"),&mod,&vk) )
         RegisterHotKey( NULL, (int)Hotkey::Incident, mod, vk );
 
-    if( parseHotkey( g_cfg.getString("OverlayFlatMap","toggle_hotkey","ctrl-8"),&mod,&vk) )
-        RegisterHotKey( NULL, (int)Hotkey::FlatMap, mod, vk );
-
-    if( parseHotkey( g_cfg.getString("OverlayTireDash","toggle_hotkey","ctrl-9"),&mod,&vk) )
+    if( parseHotkey( g_cfg.getString("OverlayTireDash","toggle_hotkey","ctrl-8"),&mod,&vk) )
         RegisterHotKey( NULL, (int)Hotkey::TireDash, mod, vk );
 }
 
@@ -189,8 +182,7 @@ static void prepopulateConfig(const std::vector<Overlay*>& overlays)
     g_cfg.getString("OverlaySpotter", "toggle_hotkey", "ctrl-5");
     g_cfg.getString("OverlayRadar", "toggle_hotkey", "ctrl-6");
     g_cfg.getString("OverlayIncident", "toggle_hotkey", "ctrl-7");
-    g_cfg.getString("OverlayFlatMap", "toggle_hotkey", "ctrl-8");
-    g_cfg.getString("OverlayTireDash", "toggle_hotkey", "ctrl-9");
+    g_cfg.getString("OverlayTireDash", "toggle_hotkey", "ctrl-8");
 
     for (Overlay* o : overlays)
     {
@@ -258,7 +250,6 @@ int main()
     printf("    " ANSI_B_RED ">" ANSI_RESET " Toggle spotter           : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlaySpotter","toggle_hotkey","").c_str() );
     printf("    " ANSI_B_RED ">" ANSI_RESET " Toggle radar             : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlayRadar","toggle_hotkey","").c_str() );
     printf("    " ANSI_B_RED ">" ANSI_RESET " Toggle incident warning  : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlayIncident","toggle_hotkey","").c_str() );
-    printf("    " ANSI_B_RED ">" ANSI_RESET " Toggle flat map          : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlayFlatMap","toggle_hotkey","").c_str() );
     printf("    " ANSI_B_RED ">" ANSI_RESET " Toggle tire dash         : " ANSI_CYAN "[ %s ]\n" ANSI_RESET, g_cfg.getString("OverlayTireDash","toggle_hotkey","").c_str() );
     
     printf("\n" ANSI_BOLD "  [ CONFIG ]" ANSI_RESET "\n");
@@ -279,9 +270,7 @@ int main()
     overlays.push_back( new OverlaySpotter() );
     overlays.push_back( new OverlayRadar() );
     overlays.push_back( new OverlayIncident() );
-    overlays.push_back( new OverlayFlatMap() );
     overlays.push_back( new OverlayTraffic() );
-    overlays.push_back( new OverlayDeltaBar() );
     overlays.push_back( new OverlayPitHelper() );
     overlays.push_back( new OverlayTireDash() );
 #ifdef _DEBUG
@@ -306,17 +295,29 @@ int main()
         if( status != prevStatus )
         {
             if( status == ConnectionStatus::DISCONNECTED ) {
-                printf("\r" ANSI_BOLD ANSI_B_RED "  [ \x1b[5mWAITING\x1b[25m ] " ANSI_RESET "Waiting for iRacing connection...                       ");
                 logMsg("INFO", "iRacing disconnected. Waiting for connection...");
             }
             else {
-                printf("\r" ANSI_BOLD ANSI_GREEN "  [ CONNECTED ] " ANSI_RESET "iRacing active (%s)                       ", ConnectionStatusStr[(int)status]);
                 logMsg("INFO", "iRacing connected! State: %s", ConnectionStatusStr[(int)status]);
             }
-            fflush(stdout);
 
             // Enable user-selected overlays, passing uiEdit state
             handleConfigChange( overlays, status, uiEdit );
+        }
+
+        // Live-updating single console status line (refreshes every 200ms)
+        static DWORD lastPrintTime = 0;
+        DWORD now = GetTickCount();
+        if (now - lastPrintTime > 200)
+        {
+            lastPrintTime = now;
+            if (status == ConnectionStatus::DISCONNECTED) {
+                printf("\r" ANSI_BOLD ANSI_B_RED "  [ WAITING ] " ANSI_RESET "Waiting for iRacing connection...                       ");
+            } else {
+                int qSize = g_telemetryLogger ? (int)g_telemetryLogger->getQueueSize() : 0;
+                printf("\r" ANSI_BOLD ANSI_GREEN "  [ ACTIVE ] " ANSI_RESET "iRacing connected (%s) | Telemetry Sending (Queue: %d)   ", ConnectionStatusStr[(int)status], qSize);
+            }
+            fflush(stdout);
         }
 
         if( ir_session.sessionType != prevSessionType )
@@ -437,9 +438,6 @@ int main()
                         break;
                     case (int)Hotkey::Incident:
                         g_cfg.setBool( "OverlayIncident", "enabled", !g_cfg.getBool("OverlayIncident","enabled",true) );
-                        break;
-                    case (int)Hotkey::FlatMap:
-                        g_cfg.setBool( "OverlayFlatMap", "enabled", !g_cfg.getBool("OverlayFlatMap","enabled",true) );
                         break;
                     case (int)Hotkey::TireDash:
                         g_cfg.setBool( "OverlayTireDash", "enabled", !g_cfg.getBool("OverlayTireDash","enabled",true) );

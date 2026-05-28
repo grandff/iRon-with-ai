@@ -1,0 +1,59 @@
+심각도 코드 설명 프로젝트 파일 줄 비표시 오류(Suppression) 상태 세부 정보
+오류 C2334 '{' 앞에 예기치 않은 토큰이 있습니다. 명백한 함수 본문을 건너뜁니다. iron C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.44.35207\include\chrono 45
+오류 C2059 구문 오류: 'namespace' iron C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.44.35207\include\chrono 45
+오류 C2059 구문 오류: 'namespace' iron C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.44.35207\include\condition_variable 30
+오류 C2334 '{' 앞에 예기치 않은 토큰이 있습니다. 명백한 함수 본문을 건너뜁니다. iron C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.44.35207\include\condition_variable 30
+오류 C2059 구문 오류: 'namespace' iron C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.44.35207\include\fstream 20
+오류 C2334 '{' 앞에 예기치 않은 토큰이 있습니다. 명백한 함수 본문을 건너뜁니다. iron C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.44.35207\include\fstream 20
+오류 C2059 구문 오류: 'namespace' iron C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.44.35207\include\mutex 29
+오류 C2334 '{' 앞에 예기치 않은 토큰이 있습니다. 명백한 함수 본문을 건너뜁니다. iron C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.44.35207\include\mutex 29
+오류 C2334 '{' 앞에 예기치 않은 토큰이 있습니다. 명백한 함수 본문을 건너뜁니다. iron C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.44.35207\include\queue 32
+오류 C2059 구문 오류: 'namespace' iron C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.44.35207\include\queue 32
+오류 C2059 구문 오류: 'namespace' iron C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.44.35207\include\__msvc_filebuf.hpp 27
+오류 C2334 '{' 앞에 예기치 않은 토큰이 있습니다. 명백한 함수 본문을 건너뜁니다. iron C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.44.35207\include\__msvc_filebuf.hpp 27
+오류 C3861 'parseYamlString': 식별자를 찾을 수 없습니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\iracing.cpp 496
+오류 C3861 'parseYamlString': 식별자를 찾을 수 없습니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\iracing.cpp 499
+오류 C1004 예기치 않은 파일의 끝이 나타났습니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\main.cpp 463
+오류 C2065 'playerBrush': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 63
+오류 C2065 'i': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 79
+오류 C2530 'car': 참조를 초기화해야 합니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 81
+오류 C2065 'i': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 81
+오류 C2065 'i': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 82
+오류 C2065 'i': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 84
+오류 C2737 'otherLap': const 개체를 초기화해야 합니다 iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 85
+오류 C2065 'i': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 85
+오류 C2065 'deltaPct': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 91
+오류 C2065 'deltaPct': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 91
+오류 C2065 'deltaPct': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 92
+오류 C2065 'deltaPct': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 92
+오류 C2065 'deltaPct': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 93
+오류 C2065 'i': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 102
+오류 C2661 'ID2D1RenderTarget::FillRectangle': 오버로드된 함수에서 1개의 인수를 사용하지 않습니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 124
+오류 C2065 'playerBrush': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayFlatMap.h 124
+오류 C2065 'm_text': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayIncident.h 27
+오류 C2065 'm_textFormat': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayIncident.h 33
+오류 C2065 'm_textFormat': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayIncident.h 34
+오류 C2065 'm_textFormat': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayIncident.h 35
+오류 C2065 'm_textFormat': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayIncident.h 36
+오류 C2065 'myDistPct': 선언되지 않은 식별자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayIncident.h 71
+오류 C2059 구문 오류: 'if' iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayIncident.h 100
+오류 C2334 '{' 앞에 예기치 않은 토큰이 있습니다. 명백한 함수 본문을 건너뜁니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayIncident.h 101
+오류 C2059 구문 오류: 'private' iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayIncident.h 130
+오류 C2059 구문 오류: ':' iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayIncident.h 130
+오류 C2143 구문 오류: ';'이(가) '}' 앞에 없습니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayIncident.h 133
+오류 C2059 구문 오류: '}' iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayIncident.h 133
+오류 C2059 구문 오류: '{' iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayRadar.h 70
+오류 C2334 '{' 앞에 예기치 않은 토큰이 있습니다. 명백한 함수 본문을 건너뜁니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayRadar.h 70
+오류 C2059 구문 오류: '}' iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayRadar.h 116
+오류 C2143 구문 오류: ';'이(가) '}' 앞에 없습니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\OverlayRadar.h 116
+오류 C2079 'OverlayTraffic::TelemetryLogger::m_file'은(는) 정의되지 않은 class 'std::basic_ofstream<char,std::char_traits<char>>'을(를) 사용합니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\TelemetryLogger.h 76
+오류 C2039 'queue': 'std'의 멤버가 아닙니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\TelemetryLogger.h 83
+오류 C4430 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\TelemetryLogger.h 83
+오류 C2143 구문 오류: ';'이(가) '<' 앞에 없습니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\TelemetryLogger.h 83
+오류 C2238 ';' 앞에 예기치 않은 토큰이 있습니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\TelemetryLogger.h 83
+오류 C2039 'mutex': 'std'의 멤버가 아닙니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\TelemetryLogger.h 84
+오류 C4430 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\TelemetryLogger.h 84
+오류 C3646 'm_mutex': 알 수 없는 재정의 지정자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\TelemetryLogger.h 84
+오류 C2039 'condition_variable': 'std'의 멤버가 아닙니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\TelemetryLogger.h 85
+오류 C4430 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\TelemetryLogger.h 85
+오류 C3646 'm_cv': 알 수 없는 재정의 지정자입니다. iron C:\Users\dsaqa\Downloads\iRon-advanced-main\iRon-advanced-main\TelemetryLogger.h 85  

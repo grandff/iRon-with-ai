@@ -40,6 +40,11 @@ class OverlayRelative : public Overlay
             : Overlay("OverlayRelative")
         {}
 
+        virtual float2 getDefaultSize() override
+        {
+            return float2(880, 450);
+        }
+
     protected:
 
         enum class Columns { POSITION, CAR_NUMBER, CAR_NAME, CLUB_NAME, NAME, DELTA, LICENSE, SAFETY_RATING, IRATING, PIT };
@@ -85,7 +90,7 @@ class OverlayRelative : public Overlay
             if( g_cfg.getBool(m_name,"show_sr",false) )
                 m_columns.add( (int)Columns::SAFETY_RATING, computeTextExtent( L"A 4.44", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/8 );
             if( g_cfg.getBool(m_name,"show_irating",true) )
-                m_columns.add( (int)Columns::IRATING,       computeTextExtent( L"999.9k", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/8 );
+                m_columns.add( (int)Columns::IRATING,       computeTextExtent( L"999.9k (+123)", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/8 );
         }
 
         virtual void onUpdate()
@@ -170,6 +175,46 @@ class OverlayRelative : public Overlay
             // Something's wrong if we didn't find our driver. Bail.
             if( selfCarInfoIdx < 0 )
                 return;
+
+            // Compute expected iRating changes for all session cars (just like in Standings)
+            float expectedIRatingChanges[IR_MAX_CARS] = {0};
+            if (ir_session.sessionType == SessionType::RACE) {
+                for (int i = 0; i < IR_MAX_CARS; ++i) {
+                    const Car& myCar = ir_session.cars[i];
+                    if (myCar.userName.empty() || myCar.isPaceCar || myCar.isSpectator || myCar.irating <= 0) continue;
+                    
+                    int myPos = ir_getPosition(i);
+                    int myClass = ir_CarIdxClass.getInt(i);
+                    
+                    int classDrivers = 0;
+                    float expectedChange = 0.0f;
+                    
+                    for (int j = 0; j < IR_MAX_CARS; ++j) {
+                        if (i == j) continue;
+                        
+                        const Car& otherCar = ir_session.cars[j];
+                        if (otherCar.userName.empty() || otherCar.isPaceCar || otherCar.isSpectator || otherCar.irating <= 0) continue;
+                        if (myClass != ir_CarIdxClass.getInt(j)) continue;
+                        
+                        classDrivers++;
+                        
+                        // Expected probability i beats j
+                        float expectedProb = 1.0f / (1.0f + powf(10.0f, (otherCar.irating - myCar.irating) / 400.0f));
+                        
+                        // Actual score: 1 if i is ahead of j, 0 if behind, 0.5 if tied
+                        float actualScore = 0.5f;
+                        int otherPos = ir_getPosition(j);
+                        if (myPos < otherPos && myPos > 0) actualScore = 1.0f;
+                        else if (myPos > otherPos && otherPos > 0) actualScore = 0.0f;
+                        
+                        expectedChange += (actualScore - expectedProb);
+                    }
+                    
+                    if (classDrivers > 0) {
+                        expectedIRatingChanges[i] = (200.0f / (classDrivers + 1)) * expectedChange;
+                    }
+                }
+            }
 
             // Display such that our driver is in the vertical center of the area where we're listing cars
 
@@ -265,17 +310,33 @@ class OverlayRelative : public Overlay
                 // Car name
                 {
                     clm = m_columns.get( (int)Columns::CAR_NAME );
-                    swprintf( s, _countof(s), L"%S", car.carName.c_str() );
+                    BrandBadge badge = getBrandBadge(car.carName);
+                    
+                    // Draw rounded rectangle badge
+                    D2D1_RECT_F badgeRect = { xoff+clm->textL, y-lineHeight/2 + 2, xoff+clm->textL + 34, y+lineHeight/2 - 2 };
+                    D2D1_ROUNDED_RECT roundedBadge = { badgeRect, 3.0f, 3.0f };
+                    
+                    m_brush->SetColor( badge.bgCol );
+                    m_renderTarget->FillRoundedRectangle( &roundedBadge, m_brush.Get() );
+                    
+                    m_brush->SetColor( badge.textCol );
+                    m_text.render( m_renderTarget.Get(), badge.abbreviation.c_str(), m_textFormatSmall.Get(), badgeRect.left, badgeRect.right, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
+                    
+                    // Draw Car Brand Text
                     m_brush->SetColor( col );
-                    m_text.render( m_renderTarget.Get(), s, m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
+                    std::wstring nameStr = car.carName.empty() ? L"Unknown" : toWide(car.carName);
+                    m_text.render( m_renderTarget.Get(), nameStr.c_str(), m_textFormatSmall.Get(), xoff+clm->textL + 38, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
                 }
 
                 // Club name
                 {
                     clm = m_columns.get( (int)Columns::CLUB_NAME );
-                    swprintf( s, _countof(s), L"%S", car.clubName.c_str() );
+                    std::wstring flag = getCountryFlagEmoji(car.clubName);
+                    std::wstring clubStr = car.clubName.empty() ? L"Global" : toWide(car.clubName);
+                    std::wstring displayStr = flag + L" " + clubStr;
+                    
                     m_brush->SetColor( col );
-                    m_text.render( m_renderTarget.Get(), s, m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
+                    m_text.render( m_renderTarget.Get(), displayStr.c_str(), m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
                 }
 
                 // Name
@@ -350,14 +411,28 @@ class OverlayRelative : public Overlay
                 // Irating
                 if( clm = m_columns.get( (int)Columns::IRATING ) )
                 {
-                    swprintf( s, _countof(s), L"%.1fk", (float)car.irating/1000.0f );
+                    float expectedChange = expectedIRatingChanges[ci.carIdx];
+                    if (ir_session.sessionType == SessionType::RACE && car.irating > 0 && expectedChange != 0) {
+                        swprintf( s, _countof(s), L"%.1fk (%s%d)", (float)car.irating/1000.0f, expectedChange > 0 ? L"+" : L"", (int)roundf(expectedChange) );
+                    } else {
+                        swprintf( s, _countof(s), L"%.1fk", (float)car.irating/1000.0f );
+                    }
                     r = { xoff+clm->textL, y-lineHeight/2, xoff+clm->textR, y+lineHeight/2 };
                     rr.rect = { r.left+1, r.top+1, r.right-1, r.bottom-1 };
                     rr.radiusX = 3;
                     rr.radiusY = 3;
                     m_brush->SetColor( iratingBgCol );
                     m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
-                    m_brush->SetColor( iratingTextCol );
+                    
+                    // Color expected change differently (green for positive, red for negative)
+                    if (ir_session.sessionType == SessionType::RACE && car.irating > 0 && expectedChange != 0) {
+                        float4 textC = iratingTextCol;
+                        if (expectedChange > 0) textC = float4(0.1f, 0.6f, 0.1f, 1.0f);
+                        else if (expectedChange < 0) textC = float4(0.8f, 0.1f, 0.1f, 1.0f);
+                        m_brush->SetColor( textC );
+                    } else {
+                        m_brush->SetColor( iratingTextCol );
+                    }
                     m_text.render( m_renderTarget.Get(), s, m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
                 }
             }

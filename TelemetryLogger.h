@@ -68,6 +68,11 @@ public:
     void start();
     void stop();
     void push(const TelemetryData& data);
+    
+    size_t getQueueSize() {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return m_queue.size();
+    }
 
 private:
     void loggingThread();

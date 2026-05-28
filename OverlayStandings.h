@@ -41,6 +41,11 @@ public:
         : Overlay("OverlayStandings")
     {}
 
+    virtual float2 getDefaultSize() override
+    {
+        return float2(880, 450);
+    }
+
 protected:
 
     virtual void onEnable()
@@ -320,17 +325,33 @@ protected:
             // Car name
             {
                 clm = m_columns.get( (int)Columns::CAR_NAME );
+                BrandBadge badge = getBrandBadge(car.carName);
+                
+                // Draw rounded rectangle badge
+                D2D1_RECT_F badgeRect = { xoff+clm->textL, y-lineHeight/2 + 2, xoff+clm->textL + 34, y+lineHeight/2 - 2 };
+                D2D1_ROUNDED_RECT roundedBadge = { badgeRect, 3.0f, 3.0f };
+                
+                m_brush->SetColor( badge.bgCol );
+                m_renderTarget->FillRoundedRectangle( &roundedBadge, m_brush.Get() );
+                
+                m_brush->SetColor( badge.textCol );
+                m_text.render( m_renderTarget.Get(), badge.abbreviation.c_str(), m_textFormatSmall.Get(), badgeRect.left, badgeRect.right, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
+                
+                // Draw Car Brand Text
                 m_brush->SetColor( textCol );
-                swprintf( s, _countof(s), L"%S", car.carName.c_str() );
-                m_text.render( m_renderTarget.Get(), s, m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
+                std::wstring nameStr = car.carName.empty() ? L"Unknown" : toWide(car.carName);
+                m_text.render( m_renderTarget.Get(), nameStr.c_str(), m_textFormatSmall.Get(), xoff+clm->textL + 38, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
             }
 
             // Club name
             {
                 clm = m_columns.get( (int)Columns::CLUB_NAME );
+                std::wstring flag = getCountryFlagEmoji(car.clubName);
+                std::wstring clubStr = car.clubName.empty() ? L"Global" : toWide(car.clubName);
+                std::wstring displayStr = flag + L" " + clubStr;
+                
                 m_brush->SetColor( textCol );
-                swprintf( s, _countof(s), L"%S", car.clubName.c_str() );
-                m_text.render( m_renderTarget.Get(), s, m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
+                m_text.render( m_renderTarget.Get(), displayStr.c_str(), m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
             }
 
             // Name
