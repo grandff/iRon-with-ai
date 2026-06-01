@@ -259,8 +259,8 @@ class OverlayRelative : public Overlay
 
                 // Multi-Class Faster Car Approaching Warning (Row highlight)
                 bool isFasterClass = false;
-                if (driverCarIdx >= 0 && !car.isSelf && !car.isPaceCar && !car.isSpectator) {
-                    float myClassEstLapTime = ir_session.cars[driverCarIdx].carClassEstLapTime;
+                if (ir_session.driverCarIdx >= 0 && !car.isSelf && !car.isPaceCar && !car.isSpectator) {
+                    float myClassEstLapTime = ir_session.cars[ir_session.driverCarIdx].carClassEstLapTime;
                     float otherClassEstLapTime = car.carClassEstLapTime;
                     if (myClassEstLapTime > 0.0f && otherClassEstLapTime > 0.0f && otherClassEstLapTime < myClassEstLapTime - 1.0f) {
                         isFasterClass = true;
