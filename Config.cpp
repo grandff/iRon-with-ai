@@ -54,8 +54,13 @@ static void configWatcher( std::atomic<bool>* m_hasChanged, std::string watchDir
 
 bool Config::load()
 {
+    std::string resolvedPath = m_filename;
+    if (m_filename == "config.json" || (m_filename.find("\\") == std::string::npos && m_filename.find("/") == std::string::npos)) {
+        resolvedPath = getRonDir() + "config.json";
+    }
+
     std::string json;
-    if( !loadFile(m_filename, json) )
+    if( !loadFile(resolvedPath, json) )
     {
         //printf("Could not load config file\n");
         return false;
@@ -76,21 +81,29 @@ bool Config::load()
 
 bool Config::save()
 {
+    std::string resolvedPath = m_filename;
+    if (m_filename == "config.json" || (m_filename.find("\\") == std::string::npos && m_filename.find("/") == std::string::npos)) {
+        resolvedPath = getRonDir() + "config.json";
+    }
+
     const picojson::value value = picojson::value( m_pj );
     const std::string json = value.serialize(true);
-    const bool ok = saveFile( m_filename, json );
+    const bool ok = saveFile( resolvedPath, json );
     if( !ok ) {
-        char s[1024];
-        GetCurrentDirectory( sizeof(s), s );
-        printf("Could not save config file! Please make sure iRon is started from a directory for which it has write permissions. The current directory is: %s.\n", s);
+        printf("Could not save config file! Target path was: %s.\n", resolvedPath.c_str());
     }
     return ok;
 }
 
 void Config::watchForChanges()
 {
-    size_t pos = m_filename.find_last_of("\\/");
-    std::string watchDir = (std::string::npos == pos) ? "." : m_filename.substr(0, pos);
+    std::string resolvedPath = m_filename;
+    if (m_filename == "config.json" || (m_filename.find("\\") == std::string::npos && m_filename.find("/") == std::string::npos)) {
+        resolvedPath = getRonDir() + "config.json";
+    }
+
+    size_t pos = resolvedPath.find_last_of("\\/");
+    std::string watchDir = (std::string::npos == pos) ? "." : resolvedPath.substr(0, pos);
 
     m_configWatchThread = std::thread( configWatcher, &m_hasChanged, watchDir );
     m_configWatchThread.detach();
@@ -182,10 +195,17 @@ std::vector<std::string> Config::getStringVec( const std::string& component, con
         value.set<picojson::array>( arr );
     }
 
+    if( !value.is<picojson::array>() )
+        return defaultVal;
+
     picojson::array& arr = value.get<picojson::array>();
-    std::vector<std::string> ret( arr.size() );
+    std::vector<std::string> ret;
+    ret.reserve( arr.size() );
     for( picojson::value& entry : arr )
-        ret.push_back( entry.get<std::string>() );
+    {
+        if( entry.is<std::string>() )
+            ret.push_back( entry.get<std::string>() );
+    }
     return ret;
 }
 
@@ -200,6 +220,12 @@ void Config::setBool( const std::string& component, const std::string& key, bool
 {
     picojson::object& pjcomp = m_pj[component].get<picojson::object>();
     pjcomp[key].set<bool>( v );
+}
+
+void Config::setString( const std::string& component, const std::string& key, const std::string& v )
+{
+    picojson::object& pjcomp = m_pj[component].get<picojson::object>();
+    pjcomp[key].set<std::string>( v );
 }
 
 picojson::object& Config::getOrInsertComponent( const std::string& component, bool* existed )

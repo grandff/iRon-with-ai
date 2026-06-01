@@ -86,8 +86,17 @@ class OverlayInputs : public Overlay
             }
 
             const float thickness = g_cfg.getFloat( m_name, "line_thickness", 2.0f );
+            
+            const float barWidth = 12.0f;
+            const float gap = 6.0f;
+            const float graphX0 = gap * 2 + barWidth;
+            const float graphX1 = w - gap * 2 - barWidth;
+            const float graphW = graphX1 - graphX0;
+
             auto vtx2coord = [&]( const float2& v )->float2 {
-                return float2( v.x+0.5f, h-0.5f*thickness - v.y*(h-thickness) );
+                float xPct = v.x / (w - 1.0f);
+                float posX = graphX0 + xPct * graphW;
+                return float2( posX, h-0.5f*thickness - v.y*(h-thickness) );
             };
 
             // Throttle (fill)
@@ -95,10 +104,10 @@ class OverlayInputs : public Overlay
             Microsoft::WRL::ComPtr<ID2D1GeometrySink>  throttleFillSink;
             m_d2dFactory->CreatePathGeometry( &throttleFillPath );
             throttleFillPath->Open( &throttleFillSink );
-            throttleFillSink->BeginFigure( float2(0,h), D2D1_FIGURE_BEGIN_FILLED );
+            throttleFillSink->BeginFigure( float2(graphX0,h), D2D1_FIGURE_BEGIN_FILLED );
             for( int i=0; i<(int)m_throttleVtx.size(); ++i )
                 throttleFillSink->AddLine( vtx2coord(m_throttleVtx[i]) );
-            throttleFillSink->AddLine( float2(m_throttleVtx[m_throttleVtx.size()-1].x+0.5f,h) );
+            throttleFillSink->AddLine( float2(graphX1,h) );
             throttleFillSink->EndFigure( D2D1_FIGURE_END_OPEN );
             throttleFillSink->Close();
 
@@ -107,10 +116,10 @@ class OverlayInputs : public Overlay
             Microsoft::WRL::ComPtr<ID2D1GeometrySink>  brakeFillSink;
             m_d2dFactory->CreatePathGeometry( &brakeFillPath );
             brakeFillPath->Open( &brakeFillSink );
-            brakeFillSink->BeginFigure( float2(0,h), D2D1_FIGURE_BEGIN_FILLED );
+            brakeFillSink->BeginFigure( float2(graphX0,h), D2D1_FIGURE_BEGIN_FILLED );
             for( int i=0; i<(int)m_brakeVtx.size(); ++i )
                 brakeFillSink->AddLine( vtx2coord(m_brakeVtx[i]) );
-            brakeFillSink->AddLine( float2(m_brakeVtx[m_brakeVtx.size()-1].x+0.5f,h) );
+            brakeFillSink->AddLine( float2(graphX1,h) );
             brakeFillSink->EndFigure( D2D1_FIGURE_END_OPEN );
             brakeFillSink->Close();
 
@@ -158,6 +167,38 @@ class OverlayInputs : public Overlay
             m_renderTarget->DrawGeometry( brakeLinePath.Get(), m_brush.Get(), thickness );
             m_brush->SetColor( g_cfg.getFloat4( m_name, "steering_col", float4(1,1,1,0.3f) ) );
             m_renderTarget->DrawGeometry( steeringLinePath.Get(), m_brush.Get(), thickness );
+
+            // --- Draw Clutch & Handbrake Bars ---
+            float clutchVal = ir_Clutch.isValid() ? ir_Clutch.getFloat() : 0.0f;
+            float handbrakeVal = ir_HandbrakeRaw.isValid() ? ir_HandbrakeRaw.getFloat() : 0.0f;
+
+            // Clutch (Left Side)
+            D2D1_ROUNDED_RECT clutchBg = D2D1::RoundedRect(D2D1::RectF(gap, gap, gap + barWidth, h - gap), 2.0f, 2.0f);
+            m_brush->SetColor(float4(0.15f, 0.15f, 0.15f, 0.5f));
+            m_renderTarget->FillRoundedRectangle(&clutchBg, m_brush.Get());
+            
+            if (clutchVal > 0.01f) {
+                float fillY = (h - gap * 2) * clutchVal;
+                D2D1_ROUNDED_RECT clutchFill = D2D1::RoundedRect(D2D1::RectF(gap, h - gap - fillY, gap + barWidth, h - gap), 2.0f, 2.0f);
+                m_brush->SetColor(float4(0.1f, 0.45f, 0.85f, 0.8f));
+                m_renderTarget->FillRoundedRectangle(&clutchFill, m_brush.Get());
+            }
+            m_brush->SetColor(float4(1.0f, 1.0f, 1.0f, 0.2f));
+            m_renderTarget->DrawRoundedRectangle(&clutchBg, m_brush.Get(), 1.0f);
+
+            // Handbrake (Right Side)
+            D2D1_ROUNDED_RECT hbBg = D2D1::RoundedRect(D2D1::RectF(w - gap - barWidth, gap, w - gap, h - gap), 2.0f, 2.0f);
+            m_brush->SetColor(float4(0.15f, 0.15f, 0.15f, 0.5f));
+            m_renderTarget->FillRoundedRectangle(&hbBg, m_brush.Get());
+
+            if (handbrakeVal > 0.01f) {
+                float fillY = (h - gap * 2) * handbrakeVal;
+                D2D1_ROUNDED_RECT hbFill = D2D1::RoundedRect(D2D1::RectF(w - gap - barWidth, h - gap - fillY, w - gap, h - gap), 2.0f, 2.0f);
+                m_brush->SetColor(float4(0.9f, 0.5f, 0.1f, 0.8f));
+                m_renderTarget->FillRoundedRectangle(&hbFill, m_brush.Get());
+            }
+            m_brush->SetColor(float4(1.0f, 1.0f, 1.0f, 0.2f));
+            m_renderTarget->DrawRoundedRectangle(&hbBg, m_brush.Get(), 1.0f);
             
         }
 

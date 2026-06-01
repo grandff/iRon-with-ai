@@ -24,18 +24,49 @@ protected:
     {
         
 
-        // 배경 반투명 처리
-        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> bgBrush;
-        m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.4f), &bgBrush);
-        D2D1_RECT_F bgRect = D2D1::RectF(0, 0, (float)m_width, (float)m_height);
-        m_renderTarget->FillRectangle(&bgRect, bgBrush.Get());
+        if (ir_session.driverCarIdx < 0 || ir_session.trackLength <= 0) return;
 
         float centerX = m_width / 2.0f;
         float centerY = m_height / 2.0f;
 
         // 레이더 스케일: 1미터 = 10픽셀
         const float scale = 10.0f;
-        const float maxDistMeters = (m_height / 2.0f) / scale; // 약 20미터
+        const float maxDistMeters = (m_height / 2.0f) / scale; // 약 16미터
+
+        // Check if there are any surrounding cars within the radar threshold
+        bool hasNearbyCars = false;
+        const float myDistPct = ir_CarIdxLapDistPct.getFloat(ir_session.driverCarIdx);
+
+        if (!m_uiEditEnabled) {
+            for (int i = 0; i < IR_MAX_CARS; ++i) {
+                if (i == ir_session.driverCarIdx) continue;
+                
+                const Car& car = ir_session.cars[i];
+                if (car.isSpectator || ir_CarIdxTrackSurface.getInt(i) == irsdk_NotInWorld) continue;
+
+                float otherDistPct = ir_CarIdxLapDistPct.getFloat(i);
+                float deltaPct = otherDistPct - myDistPct;
+                if (deltaPct > 0.5f) deltaPct -= 1.0f;
+                if (deltaPct < -0.5f) deltaPct += 1.0f;
+
+                float distMeters = deltaPct * ir_session.trackLength;
+                if (std::abs(distMeters) < maxDistMeters) {
+                    hasNearbyCars = true;
+                    break;
+                }
+            }
+        }
+
+        // early-return to ensure 100% transparency when no cars are around
+        if (!hasNearbyCars && !m_uiEditEnabled) {
+            return;
+        }
+
+        // 배경 반투명 처리
+        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> bgBrush;
+        m_renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.4f), &bgBrush);
+        D2D1_RECT_F bgRect = D2D1::RectF(0, 0, (float)m_width, (float)m_height);
+        m_renderTarget->FillRectangle(&bgRect, bgBrush.Get());
 
         // 플레이어 차량 그리기 (가운데 고정)
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> playerBrush;
@@ -45,9 +76,6 @@ protected:
         );
         m_renderTarget->FillRoundedRectangle(&playerRect, playerBrush.Get());
 
-        if (ir_session.driverCarIdx < 0 || ir_session.trackLength <= 0) return;
-
-        const float myDistPct = ir_CarIdxLapDistPct.getFloat(ir_session.driverCarIdx);
         const int spotterState = ir_CarLeftRight.getInt();
 
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> otherCarBrush;

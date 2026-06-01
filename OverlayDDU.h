@@ -310,7 +310,73 @@ class OverlayDDU : public Overlay
                     else
                         speed = speedMps * 2.23694f;
                     swprintf( s, _countof(s), L"%d", (int)(speed+0.5f) );
-                    m_text.render( m_renderTarget.Get(), s, m_textFormatBold.Get(), m_boxGear.x0, m_boxGear.x1, m_boxGear.y0+m_boxGear.h*0.8f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
+                    m_text.render( m_renderTarget.Get(), s, m_textFormatBold.Get(), m_boxGear.x0, m_boxGear.x1, m_boxGear.y0+m_boxGear.h*0.72f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
+                }
+
+                // --- Live Gap Ahead & Behind Widget inside Gear Box ---
+                float gapAhead = 999.0f;
+                float gapBehind = -999.0f;
+                int driverCarIdx = ir_session.driverCarIdx;
+                if (driverCarIdx >= 0) {
+                    const float L = ir_estimateLaptime();
+                    const float S = ir_CarIdxEstTime.getFloat(driverCarIdx);
+                    
+                    for (int i = 0; i < IR_MAX_CARS; ++i) {
+                        if (i == driverCarIdx) continue;
+                        const Car& car = ir_session.cars[i];
+                        if (car.isSpectator || car.carNumber < 0) continue;
+                        if (ir_CarIdxTrackSurface.getInt(i) == irsdk_NotInWorld) continue;
+
+                        float C = ir_CarIdxEstTime.getFloat(i);
+                        float delta = 0;
+                        const bool wrap = fabsf(ir_CarIdxLapDistPct.getFloat(i) - ir_CarIdxLapDistPct.getFloat(driverCarIdx)) > 0.5f;
+                        if (wrap) {
+                            delta = S > C ? (C - S) + L : (C - S) - L;
+                        } else {
+                            delta = C - S;
+                        }
+
+                        if (delta > 0.0f) {
+                            if (delta < gapAhead) gapAhead = delta;
+                        } else if (delta < 0.0f) {
+                            if (delta > gapBehind) gapBehind = delta;
+                        }
+                    }
+                }
+
+                static DWORD lastTick = GetTickCount();
+                static float lastGapAhead = 999.0f;
+                static float lastGapBehind = -999.0f;
+                static int trendAhead = 0;  // 1: widening (green), -1: closing (red)
+                static int trendBehind = 0; // 1: widening (green), -1: closing (red)
+
+                DWORD curTick = GetTickCount();
+                if (curTick - lastTick > 1000) {
+                    lastTick = curTick;
+                    if (gapAhead < 99.0f && lastGapAhead < 99.0f) {
+                        trendAhead = (gapAhead > lastGapAhead) ? 1 : ((gapAhead < lastGapAhead) ? -1 : 0);
+                    }
+                    if (gapBehind > -99.0f && lastGapBehind > -99.0f) {
+                        float absCur = fabsf(gapBehind);
+                        float absLast = fabsf(lastGapBehind);
+                        trendBehind = (absCur > absLast) ? 1 : ((absCur < absLast) ? -1 : 0);
+                    }
+                    lastGapAhead = gapAhead;
+                    lastGapBehind = gapBehind;
+                }
+
+                // Render Gap Ahead (Left margin of Gear box bottom)
+                if (gapAhead < 99.0f) {
+                    swprintf(s, _countof(s), trendAhead == -1 ? L"\x25BC+%.1fs" : (trendAhead == 1 ? L"\x25B2+%.1fs" : L"+%.1fs"), gapAhead);
+                    m_brush->SetColor(trendAhead == -1 ? float4(0.9f, 0.1f, 0.1f, 0.9f) : (trendAhead == 1 ? float4(0.1f, 0.8f, 0.1f, 0.9f) : float4(0.8f, 0.8f, 0.8f, 0.8f)));
+                    m_text.render(m_renderTarget.Get(), s, m_textFormatVerySmall.Get(), m_boxGear.x0 + 4.0f, m_boxGear.x0 + m_boxGear.w * 0.48f, m_boxGear.y1 - 15.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+                }
+
+                // Render Gap Behind (Right margin of Gear box bottom)
+                if (gapBehind > -99.0f) {
+                    swprintf(s, _countof(s), trendBehind == -1 ? L"\x25B2-%.1fs" : (trendBehind == 1 ? L"\x25BC-%.1fs" : L"-%.1fs"), fabsf(gapBehind));
+                    m_brush->SetColor(trendBehind == -1 ? float4(0.9f, 0.1f, 0.1f, 0.9f) : (trendBehind == 1 ? float4(0.1f, 0.8f, 0.1f, 0.9f) : float4(0.8f, 0.8f, 0.8f, 0.8f)));
+                    m_text.render(m_renderTarget.Get(), s, m_textFormatVerySmall.Get(), m_boxGear.x0 + m_boxGear.w * 0.52f, m_boxGear.x1 - 4.0f, m_boxGear.y1 - 15.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
                 }
             }
             
@@ -447,7 +513,7 @@ class OverlayDDU : public Overlay
                 m_brush->SetColor( textCol );
                 m_text.render( m_renderTarget.Get(), L"Laps", m_textFormat.Get(),      m_boxFuel.x0+xoff, m_boxFuel.x1, m_boxFuel.y0+m_boxFuel.h*2.8f/12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
                 m_text.render( m_renderTarget.Get(), L"Rem", m_textFormatSmall.Get(), m_boxFuel.x0+xoff, m_boxFuel.x1, m_boxFuel.y0+m_boxFuel.h*5.1f/12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
-                m_text.render( m_renderTarget.Get(), L"Per", m_textFormatSmall.Get(), m_boxFuel.x0+xoff, m_boxFuel.x1, m_boxFuel.y0+m_boxFuel.h*6.9f/12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
+                m_text.render( m_renderTarget.Get(), L"Per(4/8)", m_textFormatSmall.Get(), m_boxFuel.x0+xoff, m_boxFuel.x1, m_boxFuel.y0+m_boxFuel.h*6.9f/12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
                 m_text.render( m_renderTarget.Get(), L"Fin+", m_textFormatSmall.Get(), m_boxFuel.x0+xoff, m_boxFuel.x1, m_boxFuel.y0+m_boxFuel.h*8.7f/12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
                 m_text.render( m_renderTarget.Get(), L"Add", m_textFormatSmall.Get(), m_boxFuel.x0+xoff, m_boxFuel.x1, m_boxFuel.y0+m_boxFuel.h*10.5f/12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
 
@@ -455,18 +521,18 @@ class OverlayDDU : public Overlay
                 const float remainingFuel  = ir_FuelLevel.getFloat();
 
                 // Update average fuel consumption tracking. Ignore laps that weren't entirely under green or where we pitted.
-                float avgPerLap = 0;
+                float avgPerLap4 = 0;
+                float avgPerLap8 = 0;
                 {
                     if( lapCountUpdated )
                     {
                         const float usedLastLap = std::max( 0.0f, m_lapStartRemainingFuel - remainingFuel );
                         m_lapStartRemainingFuel = remainingFuel;
 
-                        if( m_isValidFuelLap )
+                        if( m_isValidFuelLap && usedLastLap > 0.05f )
                             m_fuelUsedLastLaps.push_back( usedLastLap );
 
-                        const int numLapsToAvg = g_cfg.getInt( m_name, "fuel_estimate_avg_green_laps", 4 );
-                        while( m_fuelUsedLastLaps.size() > numLapsToAvg )
+                        while( m_fuelUsedLastLaps.size() > 8 )
                             m_fuelUsedLastLaps.pop_front();
 
                         m_isValidFuelLap = true;
@@ -474,18 +540,28 @@ class OverlayDDU : public Overlay
                     if( (ir_SessionFlags.getInt() & (irsdk_yellow|irsdk_yellowWaving|irsdk_red|irsdk_checkered|irsdk_crossed|irsdk_oneLapToGreen|irsdk_caution|irsdk_cautionWaving|irsdk_disqualify|irsdk_repair)) || ir_CarIdxOnPitRoad.getBool(carIdx) )
                         m_isValidFuelLap = false;
                     
-                    for( float v : m_fuelUsedLastLaps ) {
-                        avgPerLap += v;
-                        dbg("%f",v);
+                    // 4-lap Average
+                    float sum4 = 0;
+                    int count4 = 0;
+                    int startIdx = std::max(0, (int)m_fuelUsedLastLaps.size() - 4);
+                    for (int i = startIdx; i < (int)m_fuelUsedLastLaps.size(); ++i) {
+                        sum4 += m_fuelUsedLastLaps[i];
+                        count4++;
                     }
-                    if( !m_fuelUsedLastLaps.empty() )
-                        avgPerLap /= (float)m_fuelUsedLastLaps.size();
+                    if (count4 > 0) avgPerLap4 = sum4 / count4;
 
-                    dbg( "valid fuel lap: %d", (int)m_isValidFuelLap );
+                    // 8-lap Average
+                    float sum8 = 0;
+                    int count8 = 0;
+                    for (float v : m_fuelUsedLastLaps) {
+                        sum8 += v;
+                        count8++;
+                    }
+                    if (count8 > 0) avgPerLap8 = sum8 / count8;
                 }
 
                 // Est Laps
-                const float perLapConsEst = avgPerLap * estimateFactor;  // conservative estimate of per-lap use for further calculations
+                const float perLapConsEst = (avgPerLap4 > 0 ? avgPerLap4 : (remainingFuel > 0 ? 0.5f : 0.0f)) * estimateFactor;  // conservative estimate of per-lap use for further calculations
                 if( perLapConsEst > 0 )
                 {
                     const float estLaps = remainingFuel / perLapConsEst;
@@ -503,13 +579,16 @@ class OverlayDDU : public Overlay
                     m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), m_boxFuel.x0, m_boxFuel.x1-xoff, m_boxFuel.y0+m_boxFuel.h*5.1f/12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING );
                 }
 
-                // Per Lap
-                if( avgPerLap > 0 )
+                // Per Lap (4L / 8L)
+                if( avgPerLap4 > 0 || avgPerLap8 > 0 )
                 {
-                    float val = avgPerLap;
-                    if( imperial )
-                        val *= 0.264172f;
-                    swprintf( s, _countof(s), imperial ? L"%.1f gl" : L"%.1f lt", val );
+                    float val4 = avgPerLap4;
+                    float val8 = avgPerLap8;
+                    if( imperial ) {
+                        val4 *= 0.264172f;
+                        val8 *= 0.264172f;
+                    }
+                    swprintf( s, _countof(s), L"%.2f / %.2f", val4, val8 );
                     m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), m_boxFuel.x0, m_boxFuel.x1-xoff, m_boxFuel.y0+m_boxFuel.h*6.9f/12.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING );
                 }
 
@@ -685,8 +764,17 @@ class OverlayDDU : public Overlay
                 m_text.render( m_renderTarget.Get(), L"Oil",     m_textFormatSmall.Get(), m_boxOil.x0, m_boxOil.x1, m_boxOil.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
                 m_text.render( m_renderTarget.Get(), L"Water",   m_textFormatSmall.Get(), m_boxWater.x0, m_boxWater.x1, m_boxWater.y0, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
             }
-            
-            
+
+            // Draw GPS Coordinates in DDU Footer
+            double lat = ir_Lat.isValid() ? ir_Lat.getDouble() : 0.0;
+            double lon = ir_Lon.isValid() ? ir_Lon.getDouble() : 0.0;
+            float alt = ir_Alt.isValid() ? ir_Alt.getFloat() : 0.0f;
+            if (lat != 0.0 || lon != 0.0) {
+                wchar_t gpsStr[128];
+                swprintf(gpsStr, _countof(gpsStr), L"Lat: %.5f | Lon: %.5f | Alt: %.1fm", lat, lon, alt);
+                m_brush->SetColor(float4(0.5f, 0.5f, 0.5f, 0.6f));
+                m_text.render(m_renderTarget.Get(), gpsStr, m_textFormatVerySmall.Get(), 0.0f, (float)m_width, (float)m_height - 14.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+            }
         }
 
         void addBoxFigure( ID2D1GeometrySink* geometrySink, const Box& box )

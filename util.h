@@ -185,6 +185,19 @@ inline bool saveFile( const std::string& fname, const std::string& s )
 
 inline std::wstring toWide( const std::string& narrow )
 {
+    if( narrow.empty() ) return std::wstring();
+    int size_needed = MultiByteToWideChar(CP_UTF8, 0, &narrow[0], (int)narrow.size(), NULL, 0);
+    if (size_needed > 0) {
+        std::wstring wstrTo(size_needed, 0);
+        MultiByteToWideChar(CP_UTF8, 0, &narrow[0], (int)narrow.size(), &wstrTo[0], size_needed);
+        return wstrTo;
+    }
+    size_needed = MultiByteToWideChar(CP_ACP, 0, &narrow[0], (int)narrow.size(), NULL, 0);
+    if (size_needed > 0) {
+        std::wstring wstrTo(size_needed, 0);
+        MultiByteToWideChar(CP_ACP, 0, &narrow[0], (int)narrow.size(), &wstrTo[0], size_needed);
+        return wstrTo;
+    }
     return std::wstring(narrow.begin(),narrow.end());
 }
 
@@ -519,36 +532,88 @@ inline bool parseHotkey( const std::string& desc, UINT* mod, UINT* vk )
     return false;
 }
 
-inline std::wstring getCountryFlagEmoji(const std::string& clubName) {
-    if (clubName.empty()) return L"🏳️";
+inline std::wstring getCountryCode(const std::string& clubName) {
+    if (clubName.empty()) return L"UN";
     
-    // Normalize or match common iRacing club names
-    if (clubName == "Korea") return L"🇰🇷";
-    if (clubName == "Japan") return L"🇯🇵";
-    if (clubName == "United States" || clubName == "USA") return L"🇺🇸";
-    if (clubName == "Deutschland" || clubName == "Germany") return L"🇩🇪";
-    if (clubName == "United Kingdom" || clubName == "UK" || clubName == "Celtic") return L"🇬🇧";
-    if (clubName == "France") return L"🇫🇷";
-    if (clubName == "Italy") return L"🇮🇹";
-    if (clubName == "Spain") return L"🇪🇸";
-    if (clubName == "Canada") return L"🇨🇦";
-    if (clubName == "Australia" || clubName == "Australia/NZ") return L"🇦🇺";
-    if (clubName == "Brazil") return L"🇧🇷";
-    if (clubName == "Netherlands") return L"🇳🇱";
-    if (clubName == "Sweden") return L"🇸🇪";
-    if (clubName == "Finland") return L"🇫🇮";
-    if (clubName == "Belgium") return L"🇧🇪";
-    if (clubName == "Austria" || clubName == "Switzerland") return L"🇦🇹";
+    if (clubName == "Korea") return L"KR";
+    if (clubName == "Japan") return L"JP";
+    if (clubName == "United States" || clubName == "USA") return L"US";
+    if (clubName == "Deutschland" || clubName == "Germany") return L"DE";
+    if (clubName == "United Kingdom" || clubName == "UK" || clubName == "Celtic") return L"GB";
+    if (clubName == "France") return L"FR";
+    if (clubName == "Italy") return L"IT";
+    if (clubName == "Spain") return L"ES";
+    if (clubName == "Canada") return L"CA";
+    if (clubName == "Australia" || clubName == "Australia/NZ") return L"AU";
+    if (clubName == "Brazil") return L"BR";
+    if (clubName == "Netherlands") return L"NL";
+    if (clubName == "Sweden") return L"SE";
+    if (clubName == "Finland") return L"FI";
+    if (clubName == "Belgium") return L"BE";
+    if (clubName == "Austria" || clubName == "Switzerland") return L"AT";
     
-    // Fallback: search for substrings
-    if (clubName.find("Korea") != std::string::npos) return L"🇰🇷";
-    if (clubName.find("Japan") != std::string::npos) return L"🇯🇵";
-    if (clubName.find("America") != std::string::npos || clubName.find("States") != std::string::npos) return L"🇺🇸";
-    if (clubName.find("Germany") != std::string::npos || clubName.find("Deutschland") != std::string::npos) return L"🇩🇪";
-    if (clubName.find("Celtic") != std::string::npos || clubName.find("UK") != std::string::npos || clubName.find("England") != std::string::npos) return L"🇬🇧";
+    if (clubName.find("Korea") != std::string::npos) return L"KR";
+    if (clubName.find("Japan") != std::string::npos) return L"JP";
+    if (clubName.find("America") != std::string::npos || clubName.find("States") != std::string::npos) return L"US";
+    if (clubName.find("Germany") != std::string::npos || clubName.find("Deutschland") != std::string::npos) return L"DE";
+    if (clubName.find("Celtic") != std::string::npos || clubName.find("UK") != std::string::npos || clubName.find("England") != std::string::npos) return L"GB";
     
-    return L"🏳️";
+    if (clubName.length() >= 2) {
+        std::wstring wname = toWide(clubName);
+        std::wstring code = L"";
+        code += towupper(wname[0]);
+        code += towupper(wname[1]);
+        return code;
+    }
+    
+    return L"UN";
 }
+
+inline std::wstring getCountryCode3(const std::string& clubName) {
+    if (clubName.empty()) return L"UNN";
+    
+    if (clubName == "Korea") return L"KOR";
+    if (clubName == "Japan") return L"JPN";
+    if (clubName == "United States" || clubName == "USA") return L"USA";
+    if (clubName == "Deutschland" || clubName == "Germany") return L"GER";
+    if (clubName == "United Kingdom" || clubName == "UK" || clubName == "Celtic") return L"GBR";
+    if (clubName == "France") return L"FRA";
+    if (clubName == "Italy") return L"ITA";
+    if (clubName == "Spain") return L"ESP";
+    if (clubName == "Canada") return L"CAN";
+    if (clubName == "Australia" || clubName == "Australia/NZ") return L"AUS";
+    if (clubName == "Brazil") return L"BRA";
+    if (clubName == "Netherlands") return L"NED";
+    if (clubName == "Sweden") return L"SWE";
+    if (clubName == "Finland") return L"FIN";
+    if (clubName == "Belgium") return L"BEL";
+    if (clubName == "Austria") return L"AUT";
+    if (clubName == "Switzerland") return L"CHE";
+    
+    if (clubName.find("Korea") != std::string::npos) return L"KOR";
+    if (clubName.find("Japan") != std::string::npos) return L"JPN";
+    if (clubName.find("America") != std::string::npos || clubName.find("States") != std::string::npos) return L"USA";
+    if (clubName.find("Germany") != std::string::npos || clubName.find("Deutschland") != std::string::npos) return L"GER";
+    if (clubName.find("Celtic") != std::string::npos || clubName.find("UK") != std::string::npos || clubName.find("England") != std::string::npos) return L"GBR";
+    
+    std::wstring wname = toWide(clubName);
+    if (wname.length() >= 3) {
+        std::wstring code = L"";
+        code += towupper(wname[0]);
+        code += towupper(wname[1]);
+        code += towupper(wname[2]);
+        return code;
+    } else if (wname.length() == 2) {
+        std::wstring code = L"";
+        code += towupper(wname[0]);
+        code += towupper(wname[1]);
+        code += L" ";
+        return code;
+    }
+    
+    return L"UNN";
+}
+
 
 struct BrandBadge {
     std::wstring abbreviation;

@@ -22,17 +22,15 @@ This project is a heavily expanded version of the original `iRon` overlay. While
 * **iRon-Advanced** saves your screen coordinate layout, window sizes, and overlay toggle states (On/Off) in the Windows `Documents\iRon_Advanced\config.json` path. When re-launched, your last layout is perfectly restored!
 
 **2. 📊 Enhanced Standings & Telemetry**
-* Added **real-time Expected iRating changes (+/-)** to the Standings overlay, based on the Elo rating system.
-* Added a **Car Model** text column so you can see exactly which cars the surrounding drivers are using.
+* Added a **3-letter Country Initial Badge** (e.g., `[KOR]`, `[USA]`) right before the driver names in the Standings overlay to quickly recognize competitors' origins.
+* Cleaned up redundant car model texts for an extremely professional, clutter-free look.
+* Added **real-time Expected iRating changes (+/-)** based on the Elo rating system directly to the Relative overlay.
 
-**3. 🚀 7 Brand New Overlays Added:**
-* **Radar (Proximity Radar):** A top-down proximity radar.
-* **Spotter (Visual Spotter):** Visual warnings for blind spots.
+**3. 🚀 Brand New Overlays Added:**
+* **Left & Right Visual Spotter (NEW):** Visual warnings for blind spots. The left and right panels are split and can be dragged/resized independently! They flash **Yellow** or **Red** based on the actual proximity distance of cars alongside you, and remain 100% transparent when clear.
+* **Radar (Proximity Radar):** A top-down proximity radar that stays completely transparent when no cars are nearby to avoid cluttering your vision.
 * **Incident Warning (Smart Incident):** Blinking warning banner and exact distance display for crashes within 150m ahead.
 * **Traffic (Multiclass Traffic):** Dynamic blue flag UI based on lap time pace differences when faster classes approach from behind.
-* **Flat Map (Ribbon Map):** A linear track ribbon map visualizing overall traffic density.
-* **Delta Bar (Real-time Delta):** A horizontal real-time optimal/best delta gauge.
-* **Pit Helper (Pit Stop Assistant):** Speed limit warning and repair countdown timer in the pit lane.
 
 ---
 
@@ -49,9 +47,6 @@ This project is a heavily expanded version of the original `iRon` overlay. While
   - [*Radar (NEW)*](#radar-new)
   - [*Incident Warning (NEW)*](#incident-warning-new)
   - [*Multiclass Traffic (NEW)*](#multiclass-traffic-new)
-  - [*Flat Map (NEW)*](#flat-map-new)
-  - [*Delta Bar (NEW)*](#delta-bar-new)
-  - [*Pit Helper (NEW)*](#pit-helper-new)
 - [Installing & Running](#-installing--running)
 - [Configuration](#️-configuration)
 - [Building from Source](#️-building-from-source)
@@ -68,7 +63,7 @@ The latest binary release can be found [here](https://github.com/lespalt/iRon/re
 ## 📺 Overlays
 
 ### *Relative*
-Like the *Relative* box in iRacing, but with additional information such as license, iRating, and laps driven since the last pit stop. You can also highlight your friends by adding their names to a buddy list.
+Like the *Relative* box in iRacing, but with additional information such as license, iRating, laps driven since the last pit stop, and **real-time Expected iRating changes** for current class participants. You can also highlight your friends by adding their names to a buddy list.
 At the top is an optional minimap. It can be set to either relative mode (own car fixed in the center) or absolute mode (start/finish line fixed in the center).
 
 ![relative](https://github.com/lespalt/iRon/blob/main/relative.png?raw=true)
@@ -85,7 +80,7 @@ Shows throttle/brake/steering in a moving graph. Extremely useful to practice co
 ![inputs](https://github.com/lespalt/iRon/blob/main/inputs.png?raw=true)
 
 ### *Standings*
-Shows the standings of the entire field, including safety rating, iRating, number of laps since the last pit stop ("pit age"), **real-time Expected iRating changes**, and **Car Model**. Mainly useful during caution periods or pre-race to get a sense of the competition level.
+Shows the standings of the entire field, including safety rating, iRating, number of laps since the last pit stop ("pit age"), and a clean **Country Initial Badge** left of every driver's name. Mainly useful during caution periods or pre-race to get a sense of the competition level.
 
 ![standings](https://github.com/lespalt/iRon/blob/main/standings.png?raw=true)
 
@@ -93,12 +88,17 @@ Shows the standings of the entire field, including safety rating, iRating, numbe
 We skip the screenshot for this one. It is a simple blank black rectangle, useful to cover up distracting in-game dashboards like the one in the next-gen NASCAR.
 
 ### *Spotter (NEW)*
-A visual spotter that draws transparent colored rectangles on the left and right sides of your screen when a car is in your blind spot. This directly taps into iRacing's built-in spotter telemetry.
+A visual spotter that draws colored rectangles on the left and right sides of your screen when a car is in your blind spot.
+* Left and Right panels are **independently configurable, movable, and resizable**.
+* Displays a **Yellow** caution bar for nearby cars, and shifts to a bright **Red** alert bar if a car gets dangerously close (<= 2.2m).
+* Completely transparent by default, becoming semi-transparent only when layout editing is active.
 
 ![spotter](screenshot_placeholder_spotter.png)
 
 ### *Radar (NEW)*
-A proximity radar rendering a top-down view of cars around you. Your car is positioned at the center (green). Cars ahead or behind are drawn as red rectangles based on their physical distance.
+A proximity radar rendering a top-down view of cars around you.
+* Remains 100% transparent by default when no cars are nearby to maintain screen clarity.
+* Activates and renders a top-down view of surrounding vehicles once they enter close range.
 
 ![radar](screenshot_placeholder_radar.png)
 
@@ -111,21 +111,6 @@ A smart incident warning system. Instead of just showing a generic yellow flag b
 A dynamic blue-flag warning system for multiclass racing. It compares the estimated lap times of surrounding cars to yours. If a faster class car approaches within a critical time gap from behind, it triggers a progressive glow UI that flashes intensely blue/white to warn you without blocking your vision.
 
 ![traffic](screenshot_placeholder_traffic.png)
-
-### *Flat Map (NEW)*
-A linear track map (ribbon map) that visualizes the entire track horizontally. It provides a global overview of traffic density, crucial for multiclass and endurance racing. Your car is a tall green marker; other cars are colored based on their lap delta (lap ahead, same lap, lap behind).
-
-![flatmap](screenshot_placeholder_flatmap.png)
-
-### *Delta Bar (NEW)*
-A real-time horizontal gauge comparing your current lap to the session's optimal or best lap. The bar fills green to the left if you are faster, or red to the right if you are slower, accompanied by a precise numerical delta.
-
-![deltabar](screenshot_placeholder_deltabar.png)
-
-### *Pit Helper (NEW)*
-A dedicated overlay that only appears when entering the pit lane. It displays your current speed and the track's pit speed limit, flashing a red warning if your speed limiter is disabled. Once stopped in the pit stall, it automatically transitions to a countdown timer for mandatory repairs.
-
-![pithelper](screenshot_placeholder_pithelper.png)
 
 ---
 
@@ -146,7 +131,19 @@ Overlays can be switched on and off at runtime using the hotkeys displayed durin
 Your layout and settings are automatically and globally saved to:
 `Documents\iRon_Advanced\config.json`
 
-Certain aspects of the overlays, such as colors, font types, sizes etc. can be customized. To do that, open `config.json` and experiment by editing the parameters. You can do that while the app is running -- the changes will take effect immediately whenever the file is saved!
+### Default Hotkeys Map:
+* **ALT-J**: Move and Resize Mode (Layout Editing)
+* **Ctrl-Space**: Toggle Standings
+* **Ctrl-1**: Toggle DDU (Dashboard)
+* **Ctrl-2**: Toggle Inputs (Pedal Graph)
+* **Ctrl-3**: Toggle Relative Box
+* **Ctrl-4**: Toggle Cover Box
+* **Ctrl-5**: Toggle Spotters (Left/Right synced)
+* **Ctrl-6**: Toggle Proximity Radar
+* **Ctrl-7**: Toggle Incident Warning
+* **Ctrl-8**: Toggle Tire Dash
+* **Ctrl-9**: Toggle Mini Fuel Widget
+* **Ctrl-Shift-D**: Cycle Global Display Mode (Race Only / Replay Only / Both)
 
 ---
 

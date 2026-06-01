@@ -43,11 +43,11 @@ SOFTWARE.
 #include "OverlayStandings.h"
 #include "OverlayDebug.h"
 #include "OverlayDDU.h"
+#include "OverlayFuel.h"
 #include "OverlaySpotter.h"
 #include "OverlayRadar.h"
 #include "OverlayIncident.h"
 #include "OverlayTraffic.h"
-#include "OverlayPitHelper.h"
 #include "OverlayTireDash.h"
 #include "TelemetryLogger.h"
 
@@ -68,6 +68,7 @@ SOFTWARE.
 #define ANSI_BG_RED  "\x1b[41m"
 
 #include <shlobj.h>
+#include <conio.h>
 
 // Function to enable ANSI colors in Windows Console
 void EnableANSIColors() {
@@ -93,7 +94,9 @@ enum class Hotkey
     Spotter,
     Radar,
     Incident,
-    TireDash
+    TireDash,
+    Fuel,
+    DisplayMode
 };
 
 static void registerHotkeys()
@@ -108,6 +111,8 @@ static void registerHotkeys()
     UnregisterHotKey( NULL, (int)Hotkey::Radar );
     UnregisterHotKey( NULL, (int)Hotkey::Incident );
     UnregisterHotKey( NULL, (int)Hotkey::TireDash );
+    UnregisterHotKey( NULL, (int)Hotkey::Fuel );
+    UnregisterHotKey( NULL, (int)Hotkey::DisplayMode );
 
     UINT vk, mod;
 
@@ -129,7 +134,7 @@ static void registerHotkeys()
     if( parseHotkey( g_cfg.getString("OverlayCover","toggle_hotkey","ctrl-4"),&mod,&vk) )
         RegisterHotKey( NULL, (int)Hotkey::Cover, mod, vk );
 
-    if( parseHotkey( g_cfg.getString("OverlaySpotter","toggle_hotkey","ctrl-5"),&mod,&vk) )
+    if( parseHotkey( g_cfg.getString("OverlaySpotterLeft","toggle_hotkey","ctrl-5"),&mod,&vk) )
         RegisterHotKey( NULL, (int)Hotkey::Spotter, mod, vk );
 
     if( parseHotkey( g_cfg.getString("OverlayRadar","toggle_hotkey","ctrl-6"),&mod,&vk) )
@@ -140,6 +145,12 @@ static void registerHotkeys()
 
     if( parseHotkey( g_cfg.getString("OverlayTireDash","toggle_hotkey","ctrl-8"),&mod,&vk) )
         RegisterHotKey( NULL, (int)Hotkey::TireDash, mod, vk );
+
+    if( parseHotkey( g_cfg.getString("OverlayFuel","toggle_hotkey","ctrl-9"),&mod,&vk) )
+        RegisterHotKey( NULL, (int)Hotkey::Fuel, mod, vk );
+
+    if( parseHotkey( g_cfg.getString("General","display_mode_hotkey","ctrl-shift-d"),&mod,&vk) )
+        RegisterHotKey( NULL, (int)Hotkey::DisplayMode, mod, vk );
 }
 
 static void handleConfigChange( std::vector<Overlay*> overlays, ConnectionStatus status, bool uiEdit )
@@ -148,9 +159,17 @@ static void handleConfigChange( std::vector<Overlay*> overlays, ConnectionStatus
 
     ir_handleConfigChange();
 
+    bool isReplay = ir_IsReplayPlaying.isValid() ? ir_IsReplayPlaying.getBool() : false;
+    std::string curMode = g_cfg.getString("General", "global_display_mode", "both");
+    bool shouldDisplay = true;
+    if (!uiEdit) {
+        if (curMode == "race" && isReplay) shouldDisplay = false;
+        else if (curMode == "replay" && !isReplay) shouldDisplay = false;
+    }
+
     for( Overlay* o : overlays )
     {
-        o->enable( g_cfg.getBool(o->getName(),"enabled",true) && (
+        o->enable( g_cfg.getBool(o->getName(),"enabled",true) && shouldDisplay && (
             uiEdit ||
             status == ConnectionStatus::DRIVING ||
             status == ConnectionStatus::CONNECTED && o->canEnableWhileNotDriving() ||
@@ -179,10 +198,12 @@ static void prepopulateConfig(const std::vector<Overlay*>& overlays)
     g_cfg.getString("OverlayInputs", "toggle_hotkey", "ctrl-2");
     g_cfg.getString("OverlayRelative", "toggle_hotkey", "ctrl-3");
     g_cfg.getString("OverlayCover", "toggle_hotkey", "ctrl-4");
-    g_cfg.getString("OverlaySpotter", "toggle_hotkey", "ctrl-5");
+    g_cfg.getString("OverlaySpotterLeft", "toggle_hotkey", "ctrl-5");
+    g_cfg.getString("OverlaySpotterRight", "toggle_hotkey", "ctrl-5");
     g_cfg.getString("OverlayRadar", "toggle_hotkey", "ctrl-6");
     g_cfg.getString("OverlayIncident", "toggle_hotkey", "ctrl-7");
     g_cfg.getString("OverlayTireDash", "toggle_hotkey", "ctrl-8");
+    g_cfg.getString("OverlayFuel", "toggle_hotkey", "ctrl-9");
 
     for (Overlay* o : overlays)
     {
@@ -267,11 +288,12 @@ int main()
     overlays.push_back( new OverlayInputs() );
     overlays.push_back( new OverlayStandings() );
     overlays.push_back( new OverlayDDU() );
-    overlays.push_back( new OverlaySpotter() );
+    overlays.push_back( new OverlayFuel() );
+    overlays.push_back( new OverlaySpotter(true) );   // Left
+    overlays.push_back( new OverlaySpotter(false) );  // Right
     overlays.push_back( new OverlayRadar() );
     overlays.push_back( new OverlayIncident() );
     overlays.push_back( new OverlayTraffic() );
-    overlays.push_back( new OverlayPitHelper() );
     overlays.push_back( new OverlayTireDash() );
 #ifdef _DEBUG
     overlays.push_back( new OverlayDebug() );
@@ -289,6 +311,34 @@ int main()
     {
         ConnectionStatus prevStatus       = status;
         SessionType      prevSessionType  = ir_session.sessionType;
+
+        // Asynchronous Console Key Check for Display Mode Cycle ('D' or 'd')
+        if (_kbhit()) {
+            int ch = _getch();
+            if (ch == 'd' || ch == 'D') {
+                std::string curMode = g_cfg.getString("General", "global_display_mode", "both");
+                std::string nextMode = "both";
+                if (curMode == "both") nextMode = "race";
+                else if (curMode == "race") nextMode = "replay";
+                else nextMode = "both";
+
+                g_cfg.setString("General", "global_display_mode", nextMode);
+                g_cfg.save();
+
+                std::string displayLabel = (nextMode == "both") ? "BOTH" : ((nextMode == "race") ? "RACE ONLY" : "REPLAY ONLY");
+                printf("\n" ANSI_YELLOW "  [ D-MODE ] " ANSI_RESET "Console Input: Global Display Mode switched to: " ANSI_BOLD ANSI_CYAN "%s" ANSI_RESET "\n\n", displayLabel.c_str());
+                
+                handleConfigChange(overlays, status, uiEdit);
+            }
+        }
+
+        // Live Replay State Monitoring
+        static bool lastReplayState = false;
+        bool curReplayState = ir_IsReplayPlaying.isValid() ? ir_IsReplayPlaying.getBool() : false;
+        if (curReplayState != lastReplayState) {
+            lastReplayState = curReplayState;
+            handleConfigChange(overlays, status, uiEdit);
+        }
 
         // Refresh connection and session info
         status = ir_tick();
@@ -355,6 +405,9 @@ int main()
             tdata.driverCarIdx = ir_session.driverCarIdx;
             tdata.isOnTrackCar = ir_IsOnTrackCar.getBool();
             tdata.isInGarage = ir_IsInGarage.getBool();
+            tdata.lat = ir_Lat.getDouble();
+            tdata.lon = ir_Lon.getDouble();
+            tdata.alt = ir_Alt.getFloat();
             if (g_telemetryLogger) {
                 g_telemetryLogger->push(tdata);
             }
@@ -431,7 +484,11 @@ int main()
                         g_cfg.setBool( "OverlayCover", "enabled", !g_cfg.getBool("OverlayCover","enabled",true) );
                         break;
                     case (int)Hotkey::Spotter:
-                        g_cfg.setBool( "OverlaySpotter", "enabled", !g_cfg.getBool("OverlaySpotter","enabled",true) );
+                        {
+                            bool nextVal = !g_cfg.getBool("OverlaySpotterLeft","enabled",true);
+                            g_cfg.setBool( "OverlaySpotterLeft", "enabled", nextVal );
+                            g_cfg.setBool( "OverlaySpotterRight", "enabled", nextVal );
+                        }
                         break;
                     case (int)Hotkey::Radar:
                         g_cfg.setBool( "OverlayRadar", "enabled", !g_cfg.getBool("OverlayRadar","enabled",true) );
@@ -441,6 +498,24 @@ int main()
                         break;
                     case (int)Hotkey::TireDash:
                         g_cfg.setBool( "OverlayTireDash", "enabled", !g_cfg.getBool("OverlayTireDash","enabled",true) );
+                        break;
+                    case (int)Hotkey::Fuel:
+                        g_cfg.setBool( "OverlayFuel", "enabled", !g_cfg.getBool("OverlayFuel","enabled",true) );
+                        break;
+                    case (int)Hotkey::DisplayMode:
+                        {
+                            std::string curMode = g_cfg.getString("General", "global_display_mode", "both");
+                            std::string nextMode = "both";
+                            if (curMode == "both") nextMode = "race";
+                            else if (curMode == "race") nextMode = "replay";
+                            else nextMode = "both";
+
+                            g_cfg.setString("General", "global_display_mode", nextMode);
+                            g_cfg.save();
+
+                            std::string displayLabel = (nextMode == "both") ? "BOTH" : ((nextMode == "race") ? "RACE ONLY" : "REPLAY ONLY");
+                            printf("\n" ANSI_YELLOW "  [ D-MODE ] " ANSI_RESET "Global Display Mode changed to: " ANSI_BOLD ANSI_CYAN "%s" ANSI_RESET "\n\n", displayLabel.c_str());
+                        }
                         break;
                     }
                     

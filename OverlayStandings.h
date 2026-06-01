@@ -35,7 +35,7 @@ public:
 
     const float DefaultFontSize = 15;
 
-    enum class Columns { POSITION, CAR_NUMBER, CAR_NAME, CLUB_NAME, NAME, DELTA, BEST, LAST, LICENSE, IRATING, PIT };
+    enum class Columns { POSITION, CAR_NUMBER, CLUB_NAME, NAME, DELTA, BEST, LAST, LICENSE, IRATING, PIT };
 
     OverlayStandings()
         : Overlay("OverlayStandings")
@@ -77,12 +77,11 @@ protected:
         m_columns.reset();
         m_columns.add( (int)Columns::POSITION,   computeTextExtent( L"P99", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
         m_columns.add( (int)Columns::CAR_NUMBER, computeTextExtent( L"#999", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
-        m_columns.add( (int)Columns::CAR_NAME,   computeTextExtent( L"Car Brand Text  ", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/2 );
         m_columns.add( (int)Columns::CLUB_NAME,  computeTextExtent( L"Club Name Text  ", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/2 );
         m_columns.add( (int)Columns::NAME,       0, fontSize/2 );
         m_columns.add( (int)Columns::PIT,        computeTextExtent( L"P.Age", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
         m_columns.add( (int)Columns::LICENSE,    computeTextExtent( L"A 4.44", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/6 );
-        m_columns.add( (int)Columns::IRATING,    computeTextExtent( L"999.9k (+123)", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/6 );
+        m_columns.add( (int)Columns::IRATING,    computeTextExtent( L"999.9k", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/6 );
         m_columns.add( (int)Columns::BEST,       computeTextExtent( L"999.99.999", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
         m_columns.add( (int)Columns::LAST,       computeTextExtent( L"999.99.999", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
         m_columns.add( (int)Columns::DELTA,      computeTextExtent( L"9999.9999", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
@@ -236,9 +235,7 @@ protected:
         swprintf( s, _countof(s), L"No." );
         m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
 
-        clm = m_columns.get( (int)Columns::CAR_NAME );
-        swprintf( s, _countof(s), L"Brand" );
-        m_text.render( m_renderTarget.Get(), s, m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
+
 
         clm = m_columns.get( (int)Columns::CLUB_NAME );
         swprintf( s, _countof(s), L"Club" );
@@ -322,44 +319,42 @@ protected:
                 m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
             }
 
-            // Car name
-            {
-                clm = m_columns.get( (int)Columns::CAR_NAME );
-                BrandBadge badge = getBrandBadge(car.carName);
-                
-                // Draw rounded rectangle badge
-                D2D1_RECT_F badgeRect = { xoff+clm->textL, y-lineHeight/2 + 2, xoff+clm->textL + 34, y+lineHeight/2 - 2 };
-                D2D1_ROUNDED_RECT roundedBadge = { badgeRect, 3.0f, 3.0f };
-                
-                m_brush->SetColor( badge.bgCol );
-                m_renderTarget->FillRoundedRectangle( &roundedBadge, m_brush.Get() );
-                
-                m_brush->SetColor( badge.textCol );
-                m_text.render( m_renderTarget.Get(), badge.abbreviation.c_str(), m_textFormatSmall.Get(), badgeRect.left, badgeRect.right, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
-                
-                // Draw Car Brand Text
-                m_brush->SetColor( textCol );
-                std::wstring nameStr = car.carName.empty() ? L"Unknown" : toWide(car.carName);
-                m_text.render( m_renderTarget.Get(), nameStr.c_str(), m_textFormatSmall.Get(), xoff+clm->textL + 38, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
-            }
+
 
             // Club name
             {
                 clm = m_columns.get( (int)Columns::CLUB_NAME );
-                std::wstring flag = getCountryFlagEmoji(car.clubName);
+                std::wstring countryCode = getCountryCode(car.clubName);
                 std::wstring clubStr = car.clubName.empty() ? L"Global" : toWide(car.clubName);
-                std::wstring displayStr = flag + L" " + clubStr;
+                std::wstring displayStr = L"[" + countryCode + L"] " + clubStr;
                 
                 m_brush->SetColor( textCol );
                 m_text.render( m_renderTarget.Get(), displayStr.c_str(), m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
             }
 
-            // Name
+            // Name (with Country Initial Badge)
             {
                 clm = m_columns.get( (int)Columns::NAME );
+                
+                // Get 3-letter Country Initial
+                std::wstring countryCode = getCountryCode3(car.clubName);
+                
+                // Draw Country Badge rounded rect
+                D2D1_RECT_F badgeRect = { xoff+clm->textL, y-lineHeight/2 + 2, xoff+clm->textL + 38, y+lineHeight/2 - 2 };
+                D2D1_ROUNDED_RECT roundedBadge = { badgeRect, 3.0f, 3.0f };
+                
+                // Dark slate/grey background for badge
+                m_brush->SetColor( float4(0.2f, 0.25f, 0.3f, 0.8f) );
+                m_renderTarget->FillRoundedRectangle( &roundedBadge, m_brush.Get() );
+                
+                // White text for country code
+                m_brush->SetColor( float4(1.0f, 1.0f, 1.0f, 0.9f) );
+                m_text.render( m_renderTarget.Get(), countryCode.c_str(), m_textFormatSmall.Get(), badgeRect.left, badgeRect.right, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
+                
+                // Draw driver name next to the badge
                 m_brush->SetColor( textCol );
                 swprintf( s, _countof(s), L"%S", car.userName.c_str() );
-                m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
+                m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL + 44, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
             }
 
             // Pit age
@@ -400,11 +395,7 @@ protected:
             // Irating
             {
                 clm = m_columns.get( (int)Columns::IRATING );
-                if (ir_session.sessionType == SessionType::RACE && car.irating > 0 && ci.expectedIRatingChange != 0) {
-                    swprintf( s, _countof(s), L"%.1fk (%s%d)", (float)car.irating/1000.0f, ci.expectedIRatingChange > 0 ? L"+" : L"", (int)roundf(ci.expectedIRatingChange) );
-                } else {
-                    swprintf( s, _countof(s), L"%.1fk", (float)car.irating/1000.0f );
-                }
+                swprintf( s, _countof(s), L"%.1fk", (float)car.irating/1000.0f );
                 r = { xoff+clm->textL, y-lineHeight/2, xoff+clm->textR, y+lineHeight/2 };
                 rr.rect = { r.left+1, r.top+1, r.right-1, r.bottom-1 };
                 rr.radiusX = 3;
@@ -412,16 +403,7 @@ protected:
                 m_brush->SetColor( iratingBgCol );
                 m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
                 
-                // Color expected change differently (green for positive, red for negative)
-                if (ir_session.sessionType == SessionType::RACE && car.irating > 0 && ci.expectedIRatingChange != 0) {
-                    float4 textC = iratingTextCol;
-                    if (ci.expectedIRatingChange > 0) textC = float4(0.1f, 0.6f, 0.1f, 1.0f);
-                    else if (ci.expectedIRatingChange < 0) textC = float4(0.8f, 0.1f, 0.1f, 1.0f);
-                    m_brush->SetColor( textC );
-                } else {
-                    m_brush->SetColor( iratingTextCol );
-                }
-                
+                m_brush->SetColor( iratingTextCol );
                 m_text.render( m_renderTarget.Get(), s, m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
             }
 
@@ -470,9 +452,18 @@ protected:
                 tempUnit  = 'F';
             }
 
+            int curLap = ir_Lap.getInt();
+            int maxLaps = ir_SessionLapsTotal.getInt();
+            wchar_t lapBuf[32] = L"";
+            if (maxLaps > 0 && maxLaps < 10000) {
+                swprintf(lapBuf, _countof(lapBuf), L"Lap: %d/%d      ", curLap, maxLaps);
+            } else if (curLap >= 0) {
+                swprintf(lapBuf, _countof(lapBuf), L"Lap: %d      ", curLap);
+            }
+
             m_brush->SetColor(float4(1,1,1,0.4f));
             m_renderTarget->DrawLine( float2(0,ybottom),float2((float)m_width,ybottom),m_brush.Get() );
-            swprintf( s, _countof(s), L"SoF: %d      Track Temp: %.1f\x00B0%c      Air Temp: %.1f\x00B0%c      Setup: %s      Subsession: %d", ir_session.sof, trackTemp, tempUnit, airTemp, tempUnit, ir_session.isFixedSetup?L"fixed":L"open", ir_session.subsessionId );
+            swprintf( s, _countof(s), L"%sSoF: %d      Track Temp: %.1f\x00B0%c      Air Temp: %.1f\x00B0%c      Setup: %s      Subsession: %d", lapBuf, ir_session.sof, trackTemp, tempUnit, airTemp, tempUnit, ir_session.isFixedSetup?L"fixed":L"open", ir_session.subsessionId );
             y = m_height - (m_height-ybottom)/2;
             m_brush->SetColor( headerCol );
             m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff, (float)m_width-2*xoff, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );

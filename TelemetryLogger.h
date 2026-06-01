@@ -58,6 +58,9 @@ struct TelemetryData {
     int driverCarIdx;
     bool isOnTrackCar;
     bool isInGarage;
+    double lat;
+    double lon;
+    float alt;
 };
 
 class TelemetryLogger {

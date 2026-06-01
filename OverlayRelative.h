@@ -47,7 +47,7 @@ class OverlayRelative : public Overlay
 
     protected:
 
-        enum class Columns { POSITION, CAR_NUMBER, CAR_NAME, CLUB_NAME, NAME, DELTA, LICENSE, SAFETY_RATING, IRATING, PIT };
+        enum class Columns { POSITION, CAR_NUMBER, CLUB_NAME, NAME, DELTA, LICENSE, SAFETY_RATING, IRATING, PIT };
 
         virtual void onEnable()
         {
@@ -78,7 +78,6 @@ class OverlayRelative : public Overlay
             m_columns.reset();
             m_columns.add( (int)Columns::POSITION,   computeTextExtent( L"P99", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
             m_columns.add( (int)Columns::CAR_NUMBER, computeTextExtent( L"#999", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
-            m_columns.add( (int)Columns::CAR_NAME,   computeTextExtent( L"Car Brand Text  ", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/2 );
             m_columns.add( (int)Columns::CLUB_NAME,  computeTextExtent( L"Club Name Text  ", m_dwriteFactory.Get(), m_textFormatSmall.Get() ).x, fontSize/2 );
             m_columns.add( (int)Columns::NAME,       0, fontSize/2 );
             m_columns.add( (int)Columns::DELTA,      computeTextExtent( L"+99L  -99.9", m_dwriteFactory.Get(), m_textFormat.Get() ).x, 1, fontSize/2 );
@@ -251,20 +250,36 @@ class OverlayRelative : public Overlay
             
             for( int cnt=0, i=selfCarInfoIdx-entriesAbove; i<(int)relatives.size() && y<=listingAreaBot-lineHeight/2; ++i, y+=lineHeight, ++cnt )
             {
-                // Alternating line backgrounds
-                if( cnt & 1 && alternateLineBgCol.a > 0 )
-                {
-                    D2D1_RECT_F r = { 0, y-lineHeight/2, (float)m_width,  y+lineHeight/2 };
-                    m_brush->SetColor( alternateLineBgCol );
-                    m_renderTarget->FillRectangle( &r, m_brush.Get() );
-                }
-
                 // Skip if we don't have a car to list for this line
                 if( i < 0 )
                     continue;
 
                 const CarInfo& ci  = relatives[i];
                 const Car&     car = ir_session.cars[ci.carIdx];
+
+                // Multi-Class Faster Car Approaching Warning (Row highlight)
+                bool isFasterClass = false;
+                if (driverCarIdx >= 0 && !car.isSelf && !car.isPaceCar && !car.isSpectator) {
+                    float myClassEstLapTime = ir_session.cars[driverCarIdx].carClassEstLapTime;
+                    float otherClassEstLapTime = car.carClassEstLapTime;
+                    if (myClassEstLapTime > 0.0f && otherClassEstLapTime > 0.0f && otherClassEstLapTime < myClassEstLapTime - 1.0f) {
+                        isFasterClass = true;
+                    }
+                }
+
+                if (isFasterClass && ci.delta < 0.0f && ci.delta > -5.0f) {
+                    float pulse = 0.225f + 0.125f * sinf(GetTickCount() * 0.008f);
+                    D2D1_RECT_F rBg = { 0, y-lineHeight/2, (float)m_width,  y+lineHeight/2 };
+                    m_brush->SetColor( float4(0.9f, 0.5f, 0.0f, pulse) ); // Soft pulsing orange
+                    m_renderTarget->FillRectangle( &rBg, m_brush.Get() );
+                }
+                // Alternating line backgrounds (only if not highlighted)
+                else if( cnt & 1 && alternateLineBgCol.a > 0 )
+                {
+                    D2D1_RECT_F rBg = { 0, y-lineHeight/2, (float)m_width,  y+lineHeight/2 };
+                    m_brush->SetColor( alternateLineBgCol );
+                    m_renderTarget->FillRectangle( &rBg, m_brush.Get() );
+                }
 
                 // Determine text color
                 float4 col = sameLapCol;
@@ -307,33 +322,14 @@ class OverlayRelative : public Overlay
                     m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
                 }
 
-                // Car name
-                {
-                    clm = m_columns.get( (int)Columns::CAR_NAME );
-                    BrandBadge badge = getBrandBadge(car.carName);
-                    
-                    // Draw rounded rectangle badge
-                    D2D1_RECT_F badgeRect = { xoff+clm->textL, y-lineHeight/2 + 2, xoff+clm->textL + 34, y+lineHeight/2 - 2 };
-                    D2D1_ROUNDED_RECT roundedBadge = { badgeRect, 3.0f, 3.0f };
-                    
-                    m_brush->SetColor( badge.bgCol );
-                    m_renderTarget->FillRoundedRectangle( &roundedBadge, m_brush.Get() );
-                    
-                    m_brush->SetColor( badge.textCol );
-                    m_text.render( m_renderTarget.Get(), badge.abbreviation.c_str(), m_textFormatSmall.Get(), badgeRect.left, badgeRect.right, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
-                    
-                    // Draw Car Brand Text
-                    m_brush->SetColor( col );
-                    std::wstring nameStr = car.carName.empty() ? L"Unknown" : toWide(car.carName);
-                    m_text.render( m_renderTarget.Get(), nameStr.c_str(), m_textFormatSmall.Get(), xoff+clm->textL + 38, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
-                }
+
 
                 // Club name
                 {
                     clm = m_columns.get( (int)Columns::CLUB_NAME );
-                    std::wstring flag = getCountryFlagEmoji(car.clubName);
+                    std::wstring countryCode = getCountryCode(car.clubName);
                     std::wstring clubStr = car.clubName.empty() ? L"Global" : toWide(car.clubName);
-                    std::wstring displayStr = flag + L" " + clubStr;
+                    std::wstring displayStr = L"[" + countryCode + L"] " + clubStr;
                     
                     m_brush->SetColor( col );
                     m_text.render( m_renderTarget.Get(), displayStr.c_str(), m_textFormatSmall.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
@@ -507,7 +503,20 @@ class OverlayRelative : public Overlay
                     }
                 }
             }
-            
+
+            // Draw Lap Counter in Relative Footer
+            int curLap = ir_Lap.getInt();
+            int maxLaps = ir_SessionLapsTotal.getInt();
+            if (curLap >= 0) {
+                wchar_t lapStr[64];
+                if (maxLaps > 0 && maxLaps < 10000) {
+                    swprintf(lapStr, _countof(lapStr), L"Lap: %d / %d", curLap, maxLaps);
+                } else {
+                    swprintf(lapStr, _countof(lapStr), L"Lap: %d", curLap);
+                }
+                m_brush->SetColor(float4(1.0f, 1.0f, 1.0f, 0.4f));
+                m_text.render(m_renderTarget.Get(), lapStr, m_textFormatSmall.Get(), 10.0f, (float)m_width - 10.0f, (float)m_height - 15.0f, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+            }
         }
 
     protected:

@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # 가장 최근의 태그(버전)를 가져옴 (태그가 하나도 없으면 v1.0.0으로 초기화)
-LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+# 커밋 그래프 도달성 여부와 무관하게 현존하는 최신 버전을 안전하게 파싱하기 위해 버전 정렬 방식을 사용
+LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
 
 if [ -z "$LATEST_TAG" ]; then
     LATEST_TAG="v1.0.0"

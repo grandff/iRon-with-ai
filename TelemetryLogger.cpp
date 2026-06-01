@@ -121,7 +121,10 @@ void TelemetryLogger::loggingThread() {
             jsonStream << "\"sessionFlags\":" << data.sessionFlags << ",";
             jsonStream << "\"driverCarIdx\":" << data.driverCarIdx << ",";
             jsonStream << "\"isOnTrackCar\":" << data.isOnTrackCar << ",";
-            jsonStream << "\"isInGarage\":" << data.isInGarage << "";
+            jsonStream << "\"isInGarage\":" << data.isInGarage << ",";
+            jsonStream << "\"lat\":" << data.lat << ",";
+            jsonStream << "\"lon\":" << data.lon << ",";
+            jsonStream << "\"alt\":" << data.alt << "";
             jsonStream << "}" << std::endl;
 
             if (m_file.is_open()) {
